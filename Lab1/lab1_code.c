@@ -4,7 +4,7 @@
 
 //This program increments a binary display of the number of button pushes on switch 
 //S0 on the mega128 board.
-
+ 
 #include <avr/io.h>
 #include <util/delay.h>
 
