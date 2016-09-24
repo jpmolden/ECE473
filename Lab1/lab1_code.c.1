@@ -4,7 +4,7 @@
 
 //This program increments a binary display of the number of button pushes on switch 
 //S0 on the mega128 board.
- 
+
 #include <avr/io.h>
 #include <util/delay.h>
 
@@ -29,20 +29,9 @@ int8_t debounce_switch() {
 //*******************************************************************************
 int main()
 {
-DDRB = 0xFF;  //set port B to all outputs - Data Direction Register Port B
-int pressCnt = 0;
+DDRB = 0xFF;  //set port B to all outputs
 while(1){     //do forever
- if(debounce_switch()){
-	//Steps - increment cnt
-	pressCnt++; 
-	PORTB = (pressCnt/10 << 4); //Put the ten's BCD in the MSB LEDs
-	PORTB = PORTB | (pressCnt%10); //Put the Units in the LSB LEDs
-	if(pressCnt > 99){
-		pressCnt = 0; //If the count reaches 99 set the back to 0
-	}
-	
-	//if switch true for 12 passes, increment port B
- }
-  _delay_ms(2); //keep in loop to debounce 24ms
+ if(debounce_switch()) {PORTB++;}  //if switch true for 12 passes, increment port B
+  _delay_ms(2);                    //keep in loop to debounce 24ms
   } //while 
 } //main
