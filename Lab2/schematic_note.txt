@@ -1,0 +1,21 @@
+Remember:
+
+Be sure to include:
+  -reference designators (i.e. R1, R2, C1, U1, etc)
+  -component values or part numbers
+  -for ICs, each pin should be labeled with the pin name *and* number
+  -straight lines (use a ruler)
+
+Other advice:
+  -If you scan/copy your schematic and turn in the copy, make sure its readable.
+  -Don't just print the schematics provided on the course webpage and turn them in.
+   This shows no effort.
+  -You are drawing schematics, not a block diagram. You should not (for example) 
+   replace the entire switch board with a block labeled "switch board."
+  -If it is appropriate to combine multiple wires into a bus, you may do that. If 
+   you combine multiple elements that are wired similarly (the eight diode+switch 
+   pairs on the switch board) into a single element, make it very clear in the 
+   schematic.
+
+Bottom line, remember that these are to be "professional quality schematics."
+
