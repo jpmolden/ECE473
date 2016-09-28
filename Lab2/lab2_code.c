@@ -24,17 +24,18 @@ uint8_t segment_data[5];
 
 //decimal to 7-segment LED display encodings, logic "0" turns on segment
 uint8_t dec_to_7seg[12]={
-	0xC0,   //1
-        0xAA,   //2
-        0xAA,   //3
-        0xAA,   //4
-        0xAA,   //5
-        0xAA,   //6
-        0xAA,   //7
-        0xAA,   //8
-        0xAA,   //9
-        0xAA,   //OFF 
-	0xAA,	//Colon
+	0xC0,   //0
+        0xF9,   //1
+        0xA4,   //2
+        0xB0,   //3
+        0x99,   //4
+        0x92,   //5
+        0x82,   //6
+        0xF8,   //7
+        0x80,   //8
+        0x98,   //9 
+	0xFF,	//OFF
+	0x7F,	//Colon
 	};
 
 //******************************************************************************
@@ -69,16 +70,16 @@ void segsum(uint16_t sum) {
 	if(sum >= 1000)(no_digits = 4);
 
   //break up decimal sum into 4 digit-segments
-	segment_data[0] = (sum/1) %10;		
-	segment_data[1] = (sum/10) %10;
+	segment_data[0] = 0x82;//(sum/1) %10;		
+	segment_data[1] = 0x82;//(sum/10) %10;
 	segment_data[2] = SEG_OFF;			
-	segment_data[3] = (sum/100) %10;			
-	segment_data[4] = (sum/1000) %10;			
+	segment_data[3] = 0x82;//(sum/100) %10;			
+	segment_data[4] = 0x82;//(sum/1000) %10;			
 
   //blank out leading zero digits
 	int i = 4;	
 	for(i=4; i>no_digits; i--){
-		segment_data[i] = SEG_OFF;
+		//segment_data[i] = SEG_OFF;
 	}
   //now move data to right place for misplaced colon position
   // Data is placed into the correct posistion
@@ -120,8 +121,7 @@ while(1){
 	DDRA = 0xFF;
   //send 7 segment code to LED segments
 	for(;counter<5;counter++){
-		PORTA = 0x00;
-		PORTB = 0x00;
+		PORTA = segment_data[counter];
 		PORTB = counter<<4 | 0<<PB7;
 		_delay_ms(2);
 	}
