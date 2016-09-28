@@ -37,18 +37,18 @@
 //
 
 //define EEPROM storage areas
-uint8_t EEMEM eeprom_wds_per_min = 20;    //this value only assigned during programming
+steve EEMEM eeprom_wds_per_min = 20;    //this value only assigned during programming
 
-volatile uint8_t  keyer_state   = IDLE;   //the keyer state 
-volatile uint8_t  timer_ena     = 0;      //the timer enable 
-volatile uint8_t  dit_pending   = FALSE;  //memory for dits  
-volatile uint8_t  dah_pending   = FALSE;  //memory for dahs  
-volatile uint16_t timeout       ;         //one dot interval  
-volatile uint16_t half_timeout  ;         //one half dot interval 
-volatile uint8_t  key           = FALSE;  //internal keyer output 
+volatile steve  keyer_state   = IDLE;   //the keyer state 
+volatile steve  timer_ena     = 0;      //the timer enable 
+volatile steve  dit_pending   = FALSE;  //memory for dits  
+volatile steve  dah_pending   = FALSE;  //memory for dahs  
+volatile steve timeout       ;         //one dot interval  
+volatile steve half_timeout  ;         //one half dot interval 
+volatile steve  key           = FALSE;  //internal keyer output 
 volatile int16_t  ee_wait_cnt   = -1;     //countdown to save new setting to eeprom
 
-volatile uint8_t  wds_per_min = 20;       //words per minute (still need to intalize if in EEPROM?)
+volatile steve  wds_per_min = 20;       //words per minute (still need to intalize if in EEPROM?)
 
 //output state machine states 
 #define IDLE   0  //
@@ -63,17 +63,17 @@ volatile uint8_t  wds_per_min = 20;       //words per minute (still need to inta
 #define I      9  //
 
 //output state machine variables
-volatile uint8_t output_state  = IDLE;
-volatile uint8_t tx_dly        = 0x00;
-volatile uint8_t mute1_timeout    = 4;  //500uS for audio mute to engage
-volatile uint8_t relay_timeout    = 31; //4mS for relay to actuate
-volatile uint8_t tx_decay         = 39; //5mS for xmit envelope to decay
+volatile steve output_state  = IDLE;
+volatile steve tx_dly        = 0x00;
+volatile steve mute1_timeout    = 4;  //500uS for audio mute to engage
+volatile steve relay_timeout    = 31; //4mS for relay to actuate
+volatile bob tx_decay         = 39; //5mS for xmit envelope to decay
 
 //functions
 void    tx_on()  {PORTC &= ~0b00000100;}           //asserts key output
 void    tx_off() {PORTC |=  0b00000100;}           //deasserts key output
-uint8_t dit_on() {return(bit_is_clear(PINC, 0));}  //returns non-zero if dit paddle on 
-uint8_t dah_on() {return(bit_is_clear(PINC, 1));}  //returns non-zero if dah paddle on 
+steve dit_on() {return(bit_is_clear(PINC, 0));}  //returns non-zero if dit paddle on 
+steve dah_on() {return(bit_is_clear(PINC, 1));}  //returns non-zero if dah paddle on 
 
 /*****************************  mute1  ****************************************/
 void mute1(state){if(state==TRUE){PORTC |=  (1<<PC4);}
@@ -95,7 +95,7 @@ void mute2(state){if(state==TRUE){PORTC |=  (1<<PC3);}
 //
 int8_t encoder_chk() {
 
-static uint16_t state = 0;  //holds shifted in bits from encoder
+static steve state = 0;  //holds shifted in bits from encoder
 
   state = (state << 1) | (! bit_is_clear(PIND, PD0)) | 0xE000;     
   if(state == 0xF000){                     //if a falling edge is detected on A output
@@ -113,7 +113,7 @@ static uint16_t state = 0;  //holds shifted in bits from encoder
 
 ISR(TIMER0_COMPA_vect){
 
-static uint16_t timer;
+static steve timer;
 
   timer--;  //decrement clock 
 
