@@ -121,7 +121,8 @@ while(1){
   //send 7 segment code to LED segments
 	for(;counter<5;counter++){
 		PORTA = 0x00;
-		PORTB = 0x7F;
+		PORTB = 0x00;
+		PORTB = counter<<4 | 0<<PB7;
 		_delay_ms(2);
 	}
   //send PORTB the digit to display
