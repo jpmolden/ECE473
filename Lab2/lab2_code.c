@@ -13,8 +13,8 @@
 #define FALSE 0
 
 #define SEG_OFF 0xFF
-#define BUTTONS_OFF 0x0E
-#define BUTTONS_ON 0x00
+#define BUTTONS_OFF 0x00
+#define BUTTONS_ON 0xFF
 
 #include <avr/io.h>
 #include <util/delay.h>
@@ -69,18 +69,31 @@ void segsum(uint16_t sum) {
 	if(sum >= 100)(no_digits = 3);	
 	if(sum >= 1000)(no_digits = 4);
 
-  //break up decimal sum into 4 digit-segments
-	segment_data[0] = 0x82;//(sum/1) %10;		
-	segment_data[1] = 0x82;//(sum/10) %10;
+  //break up decimal sum into 4 digit-segment	
+	//The digits (0-9) are used as the index for the seven segment representation
+	segment_data[0] = dec_to_7seg[(sum/1) %10];		
+	segment_data[1] = dec_to_7seg[(sum/10) %10];
 	segment_data[2] = SEG_OFF;			
-	segment_data[3] = 0x82;//(sum/100) %10;			
-	segment_data[4] = 0x82;//(sum/1000) %10;			
-
+	segment_data[3] = dec_to_7seg[(sum/100) %10];			
+	segment_data[4] = dec_to_7seg[(sum/1000) %10];
+			
   //blank out leading zero digits
-	int i = 4;	
-	for(i=4; i>no_digits; i--){
-		//segment_data[i] = SEG_OFF;
+	if(sum < 1000){
+		segment_data[4] = SEG_OFF;
 	}
+        if(sum < 100){
+		 segment_data[3] = SEG_OFF;
+	}
+        if(sum < 10){
+                 segment_data[1] = SEG_OFF;
+        }
+	if(sum == 0){
+                 segment_data[0] = SEG_OFF;
+        }
+
+	//for(i=1; i>no_digits; i--){
+	//	segment_data[i] = SEG_OFF;
+	//}
   //now move data to right place for misplaced colon position
   // Data is placed into the correct posistion
 }//segment_sum
@@ -91,8 +104,8 @@ void segsum(uint16_t sum) {
 int main()
 {
 //set port bits 4-7 B as outputs
+uint16_t sum;
 while(1){
-	uint8_t sum;
   //insert loop delay for debounce
 	_delay_ms(2);
   //make PORTA an input port with pullups 
@@ -105,8 +118,9 @@ while(1){
 	
   //now check each button and increment the count as needed
 	int i = 0;
-	for( ; i<8; i++){
-		if(chk_buttons(i))(sum += (2^i));
+	for(i=0 ; i<8; i++){
+		if(chk_buttons(i))(sum = sum + (1<<i));
+		//sum = 1023;
 	}	
   //disable tristate buffer for pushbutton switches
 	PORTB |= (0<<PB4) | (0<<PB5) | (0<<PB6) | (1<<PB7);
