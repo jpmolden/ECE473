@@ -35,14 +35,21 @@ while(1){     //do forever
  if(debounce_switch()){
 	//Steps - increment cnt
 	pressCnt++; 
+<<<<<<< HEAD
 	//PORTB = (pressCnt/10 << 4); //Put the ten's BCD in the MSB LEDs
 	//PORTB = PORTB | (pressCnt%10); //Put the Units in the LSB LEDs
+=======
+>>>>>>> 36b303c2fa054dce5125144c9958afe3cf3c2fb7
 	if(pressCnt > 99){
 		pressCnt = 0; //If the count reaches 99 set the back to 0
 		PORTB = 0x00;
 	}else{
 		PORTB = (pressCnt/10 << 4) | (pressCnt%10);
+<<<<<<< HEAD
 	} 
+=======
+	}
+>>>>>>> 36b303c2fa054dce5125144c9958afe3cf3c2fb7
 	
 	//if switch true for 12 passes, increment port B
  }
