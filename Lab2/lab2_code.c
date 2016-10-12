@@ -1,6 +1,6 @@
 // lab2_skel.c 
-// R. Traylor
-// 9.12.08
+// John-Paul Molden 
+// 10.12.16
 
 //  HARDWARE SETUP:
 //  PORTA is connected to the segments of the LED display. and to the pushbuttons.
@@ -15,6 +15,10 @@
 #define SEG_OFF 0xFF
 #define BUTTONS_OFF 0x00
 #define BUTTONS_ON 0xFF
+
+#define DDRA_OUTPUT 0xFF
+#define DDRA_INPUT 0x00
+
 
 #include <avr/io.h>
 #include <util/delay.h>
@@ -88,7 +92,7 @@ void segsum(uint16_t sum) {
                  segment_data[1] = SEG_OFF;
         }
 	if(sum == 0){
-                 segment_data[0] = SEG_OFF;
+                 //segment_data[0] = SEG_OFF;
         }
 
 	//for(i=1; i>no_digits; i--){
@@ -104,12 +108,12 @@ void segsum(uint16_t sum) {
 int main()
 {
 //set port bits 4-7 B as outputs
-uint16_t sum;
+uint16_t sum = 0;
 while(1){
   //insert loop delay for debounce
 	//_delay_ms(2);
   //make PORTA an input port with pullups 
-	DDRA = 0x00; //Enable Input on Data Direction Reg
+	DDRA = DDRA_INPUT;
 	PORTA = 0xFF; //Enable Pull Ups on PortA
 
   //enable tristate buffer for pushbutton switches
@@ -127,13 +131,13 @@ while(1){
 	PORTB |= (0<<PB4) | (0<<PB5) | (0<<PB6) | (1<<PB7);
 	
   //bound the count to 0 - 1023
-	if(sum > 1023)(sum = 0);
+	if(sum > 1023)(sum = sum - 1023);
   //break up the disp_value to 4, BCD digits in the array: call (segsum)
   	segsum(sum);
   //bound a counter (0-4) to keep track of digit to display 
 	int counter = 0;
   //make PORTA an output
-	DDRA = 0xFF;
+	DDRA = DDRA_OUTPUT;
   //send 7 segment code to LED segments
 	for(;counter<5;counter++){
 		PORTA = segment_data[counter];
