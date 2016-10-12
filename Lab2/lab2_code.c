@@ -107,7 +107,7 @@ int main()
 uint16_t sum;
 while(1){
   //insert loop delay for debounce
-	_delay_ms(2);
+	//_delay_ms(2);
   //make PORTA an input port with pullups 
 	DDRA = 0x00; //Enable Input on Data Direction Reg
 	PORTA = 0xFF; //Enable Pull Ups on PortA
@@ -120,11 +120,12 @@ while(1){
 	int i = 0;
 	for(i=0 ; i<8; i++){
 		if(chk_buttons(i))(sum = sum + (1<<i));
+		//_delay_ms(1);
 		//sum = 1023;
 	}	
   //disable tristate buffer for pushbutton switches
 	PORTB |= (0<<PB4) | (0<<PB5) | (0<<PB6) | (1<<PB7);
-		
+	
   //bound the count to 0 - 1023
 	if(sum > 1023)(sum = 0);
   //break up the disp_value to 4, BCD digits in the array: call (segsum)
@@ -137,7 +138,7 @@ while(1){
 	for(;counter<5;counter++){
 		PORTA = segment_data[counter];
 		PORTB = counter<<4 | 0<<PB7;
-		_delay_ms(2);
+		_delay_ms(1);
 	}
   //send PORTB the digit to display
   //update digit to display 
