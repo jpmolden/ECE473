@@ -7,6 +7,7 @@
 // Includes
 #include <avr/io.h>
 #include <util/delay.h>
+#include <avr/interrupt.h>
 
 //***********************************************************************
 //                            spi_init                               
@@ -23,7 +24,7 @@ void spi_init(void){
 
 
 //***********************************************************************
-//                            spi_init                               
+//                            timer/counter0_init                               
 //**********************************************************************
 void init_tcnt0(){
 //  ASSR  |=  (1<<AS0);                //run off external 32khz osc (TOSC)
@@ -41,8 +42,6 @@ void init_tcnt0(){
 //***********************************************************************
 //                            Interrupts
 //**********************************************************************
-
-
 ISR(TIMER0_OVF_vect){
 // Read the buttons
 
@@ -51,6 +50,8 @@ ISR(TIMER0_OVF_vect){
 
 
 // Read the encoders
+
+// Possible send the display count to the display (may be too slow)
 
 }
 
@@ -66,6 +67,11 @@ uint8_t i; //dummy counter
 
 spi_init();  //initalize SPI port
 init_tcnt0(); // initalize TIMER/COUNTER0
+sei(); // enable global interrupts
+
+// Set the DDR for Ports
+
+
 
 while(1){                             //main while loop
 
@@ -74,7 +80,7 @@ while(1){                             //main while loop
 // Send the Digits to the Display
 
 
-//
+// Send the mode to the 
 
 
 
