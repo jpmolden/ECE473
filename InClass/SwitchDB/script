@@ -1,0 +1,6 @@
+#!/bin/bash
+wget http://www.ece.orst.edu/~traylor/ece473/inclass_exercises/io_ports/switch_example_skel.c
+wget http://www.ece.orst.edu/~traylor/ece473/inclass_exercises/io_ports/lcd_functions.c
+wget http://www.ece.orst.edu/~traylor/ece473/inclass_exercises/io_ports/lcd_functions.h
+wget http://www.ece.orst.edu/~traylor/ece473/inclass_exercises/io_ports/Makefile
+wget http://www.ece.orst.edu/~traylor/ece473/inclass_exercises/io_ports/Makefile.switch_example

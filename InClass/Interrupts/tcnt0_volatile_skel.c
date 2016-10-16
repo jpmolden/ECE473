@@ -48,7 +48,7 @@ int main() {
   while(1){
     if(ext_count == 255){     //blink light at 1sec intervals
       PORTB++;                //increment count pattern
-      ext_count=0;            //reset the count 
+      //ext_count=0;            //reset the count 
     } 
   }//while
 }// main

@@ -3,19 +3,19 @@ tcnt0_volatile_skel.elf:     file format elf32-avr
 
 Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
-  0 .data         00000000  00800100  00000126  000001ba  2**0
+  0 .data         00000000  00800100  00000122  000001b6  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  1 .text         00000126  00000000  00000000  00000094  2**1
+  1 .text         00000122  00000000  00000000  00000094  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .bss          00000001  00800100  00800100  000001ba  2**0
+  2 .bss          00000001  00800100  00800100  000001b6  2**0
                   ALLOC
-  3 .stab         000005e8  00000000  00000000  000001bc  2**2
+  3 .stab         000005dc  00000000  00000000  000001b8  2**2
                   CONTENTS, READONLY, DEBUGGING
-  4 .stabstr      00000c0d  00000000  00000000  000007a4  2**0
+  4 .stabstr      00000c0d  00000000  00000000  00000794  2**0
                   CONTENTS, READONLY, DEBUGGING
-  5 .comment      00000011  00000000  00000000  000013b1  2**0
+  5 .comment      00000011  00000000  00000000  000013a1  2**0
                   CONTENTS, READONLY
-  6 .note.gnu.avr.deviceinfo 0000003c  00000000  00000000  000013c4  2**2
+  6 .note.gnu.avr.deviceinfo 0000003c  00000000  00000000  000013b4  2**2
                   CONTENTS, READONLY
 
 Disassembly of section .text:
@@ -79,7 +79,7 @@ Disassembly of section .text:
   a4:	b2 07       	cpc	r27, r18
   a6:	e1 f7       	brne	.-8      	; 0xa0 <.do_clear_bss_loop>
   a8:	0e 94 78 00 	call	0xf0	; 0xf0 <main>
-  ac:	0c 94 91 00 	jmp	0x122	; 0x122 <_exit>
+  ac:	0c 94 8f 00 	jmp	0x11e	; 0x11e <_exit>
 
 000000b0 <__bad_interrupt>:
   b0:	0c 94 00 00 	jmp	0	; 0x0 <__vectors>
@@ -182,12 +182,10 @@ int main() {
  116:	88 b3       	in	r24, 0x18	; 24
  118:	8f 5f       	subi	r24, 0xFF	; 255
  11a:	88 bb       	out	0x18, r24	; 24
-      ext_count=0;            //reset the count 
- 11c:	10 92 00 01 	sts	0x0100, r1
- 120:	f6 cf       	rjmp	.-20     	; 0x10e <main+0x1e>
+ 11c:	f8 cf       	rjmp	.-16     	; 0x10e <main+0x1e>
 
-00000122 <_exit>:
- 122:	f8 94       	cli
+0000011e <_exit>:
+ 11e:	f8 94       	cli
 
-00000124 <__stop_program>:
- 124:	ff cf       	rjmp	.-2      	; 0x124 <__stop_program>
+00000120 <__stop_program>:
+ 120:	ff cf       	rjmp	.-2      	; 0x120 <__stop_program>
