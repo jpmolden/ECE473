@@ -88,7 +88,7 @@ uint8_t chk_buttons(uint8_t button) {
 //******************************************************************************
 }
 //***********************************************************************************
-//                                   segment_sum                                    
+//                                   segment_tsum                                    
 //takes a 16-bit binary input value and places the appropriate equivalent 4 digit 
 //BCD segment code in the array segment_data for display.                       
 //array is loaded at exit as:  |digit3|digit2|colon|digit1|digit0|
@@ -139,7 +139,7 @@ void segsum(uint16_t sum) {
 //                            spi_init                               
 //**********************************************************************
 void spi_init(void){
-  DDRB   = 0x07; //output mode for SS, MOSI, SCLK
+  DDRB   = 0xF7; //output mode for SS, MOSI, SCLK & Pins 4-7 (7Seg & Bar Graph)
 
   SPCR   = (1<<SPE) | (1<<MSTR) | (0<<CPOL) | (0<<CPHA); // Enable SPI, master mode, clk low on idle, leading edge sample
 
@@ -203,16 +203,25 @@ ISR(TIMER0_OVF_vect){
         if(chk_buttons(1))(incdec_mode = buttons_to_incdec[((button2^0x02) | (button1))]);
         // The state of button2 is flipped ORd with button1 state and sets incdec mode 
 
-// Send info to the bargraph (Sending info will read in encoders)
+  // Send info to the bargraph (Sending info will read in encoders)
 	encoder =  spi_rw8(incdec_to_bargraph[incdec_mode]); // Send SPI_8bit
+  // Serial in to the bar graph out to the LEDs
+	PORTD |=  0x04;                   //send rising edge to regclk on HC595 
+	PORTD &= ~0x04;                   //send falling edge to regclk on HC595
 	
-// Check the encoders
+  // Check the encoders
 	if(encoder != old_encoder){
 		// Change in the encoder position
 		
 		// To Do Calculate Directions
 		display_count++;
 	}	
+  // Return the DDRs to original states
+	DDRA = DDRA_OUTPUT;
+	PORTA = 0xFF; //Keeps the 7-Seg off untill back in main
+  // Disable the button board tristates
+        PORTB |= (0<<PB4) | (0<<PB5) | (0<<PB6) | (1<<PB7);
+
 
 }
 
@@ -225,6 +234,7 @@ int main(){
 
 //uint8_t display_count = 0x01; //holds count for display 
 uint8_t i; //dummy counter
+uint8_t 7seg_sum = 0; //Set the initial 7seg Value
 
 //volatile uint8_t incdec_mode = 0;
 //volatile uint8_t button1 = 0;
@@ -235,8 +245,9 @@ spi_init();  //initalize SPI port
 init_tcnt0(); // initalize TIMER/COUNTER0
 
 // Set the DDR for Ports
-
-
+DDRA = DDRA_OUTPUT;
+DDRE = (1<<PE6);
+DDRD = (1<<PD2);
 
 
 // Read the starting encoder positions
@@ -249,6 +260,28 @@ while(1){                             //main while loop
 // Decode the Display Digits
 
 // Send the Digits to the Display
+  //bound the count to 0 - 1023
+        if(7seg_sum > 1023)(7seg_sum = 7seg_sum - 1023);
+  //break up the disp_value to 4, BCD digits in the array: call (segsum)
+        segsum(7seg_sum);
+  //bound a counter (0-4) to keep track of digit to display 
+        int i = 0;
+  //send 7 segment code to LED segments
+        for(;i<5;i++){
+                PORTA = segment_data[counter];
+                PORTB = counter<<4 | 0<<PB7;
+                _delay_ms(1);
+        }
+
+
+
+
+
+
+
+
+
+
 
 
 // Send the mode to the 
