@@ -14,7 +14,7 @@
 //  PORTB bits 4-6 go to a,b,c inputs of the 74HC138.
 //  PORTB bit 7 goes to the PWM transistor base.
 
-#define F_CPU 16000000 // cpu speed in hertz 
+//#define F_CPU 16000000 // cpu speed in hertz 
 #define TRUE 1
 #define FALSE 0
 
@@ -59,6 +59,13 @@ uint8_t buttons_to_incdec[4]={
         0x00,   //4
         };
 
+
+volatile uint8_t incdec_mode = 0;
+volatile uint8_t button1 = 0;
+volatile uint8_t button2 = 0;
+volatile uint8_t encoder = 0;
+volatile uint8_t old_encoder = 0;
+volatile uint8_t display_count = 0x01; //holds count for display 
 
 
 
@@ -190,16 +197,22 @@ ISR(TIMER0_OVF_vect){
         PORTB = PORTB | BUTTONS_ON;
 
   // Set the inc/dec mode by reading button board
-	if(chk_buttons(0))(incdec_mode = buttons_to_incdec[(button2 | (button1^0x01))];
+	if(chk_buttons(0))(incdec_mode = buttons_to_incdec[(button2 | (button1^0x01))]);
 	// The state of button1 is flipped ORd with button2 state and sets incdec mode 
 
-        if(chk_buttons(1))(incdec_mode = buttons_to_incdec[((button2^0x02) | (button1))];
+        if(chk_buttons(1))(incdec_mode = buttons_to_incdec[((button2^0x02) | (button1))]);
         // The state of button2 is flipped ORd with button1 state and sets incdec mode 
 
 // Send info to the bargraph (Sending info will read in encoders)
-	SPDR = incdec_to_bargraph[incdec_mode];
+	encoder =  spi_rw8(incdec_to_bargraph[incdec_mode]); // Send SPI_8bit
 	
-// Read the encoders
+// Check the encoders
+	if(encoder != old_encoder){
+		// Change in the encoder position
+		
+		// To Do Calculate Directions
+		display_count++;
+	}	
 
 }
 
@@ -210,22 +223,25 @@ ISR(TIMER0_OVF_vect){
 //**********************************************************************
 int main(){
 
-uint8_t display_count = 0x01; //holds count for display 
+//uint8_t display_count = 0x01; //holds count for display 
 uint8_t i; //dummy counter
 
-volatile uint8_t incdec_mode = 0;
-volatile uint8_t button1 = 0;
-volatile uint8_t button2 = 0;
-
+//volatile uint8_t incdec_mode = 0;
+//volatile uint8_t button1 = 0;
+//volatile uint8_t button2 = 0;
+//volatile uint8_t encoder = 0;
 
 spi_init();  //initalize SPI port
 init_tcnt0(); // initalize TIMER/COUNTER0
-sei(); // enable global interrupts
 
 // Set the DDR for Ports
 
 
 
+
+// Read the starting encoder positions
+old_encoder = spi_rw8(0x00);
+sei(); // enable global interrupts
 
 
 while(1){                             //main while loop

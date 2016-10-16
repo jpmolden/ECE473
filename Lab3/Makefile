@@ -1,4 +1,4 @@
-PRG            =bar_graph_noints_skel
+PRG            =lab3_code
 
 OBJ            = $(PRG).o
 
