@@ -29,7 +29,7 @@ $(PRG).elf: $(OBJ)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 clean: 
-	rm -rf *.o $(PRG).elf *.eps *.png *.pdf *.bak 
+	rm -rf *.o $(PRG).elf *.eps *.png *.bak *.srec *.hex *.bin 
 	rm -rf *.lst *.map $(EXTRA_CLEAN_FILES) *~
 
 program: $(PRG).hex
