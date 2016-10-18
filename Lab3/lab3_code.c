@@ -65,7 +65,7 @@ volatile uint8_t button1 = 0;
 volatile uint8_t button2 = 0;
 volatile uint8_t encoder = 0;
 volatile uint8_t old_encoder = 0;
-volatile uint8_t display_count = 0x01; //holds count for display 
+volatile uint8_t display_count = 0x00; //holds count for display 
 
 
 
@@ -95,11 +95,11 @@ uint8_t chk_buttons(uint8_t button) {
 void segsum(uint16_t sum) {
   //determine how many digits there are 
         //output to segment_data[5]
-        unsigned int no_digits = 0;
-        if(sum >= 1)(no_digits = 1);
-        if(sum >= 10)(no_digits = 2);
-        if(sum >= 100)(no_digits = 3);
-        if(sum >= 1000)(no_digits = 4);
+        //unsigned int no_digits = 0;
+        //if(sum >= 1)(no_digits = 1);
+        //if(sum >= 10)(no_digits = 2);
+        //if(sum >= 100)(no_digits = 3);
+        //if(sum >= 1000)(no_digits = 4);
 
   //break up decimal sum into 4 digit-segment   
         //The digits (0-9) are used as the index for the seven segment representation
@@ -138,7 +138,7 @@ void segsum(uint16_t sum) {
 //***********************************************************************
 //                            spi_init                               
 //**********************************************************************
-void spi_init(void){
+void spi_init(){
   DDRB   = 0xF7; //output mode for SS, MOSI, SCLK & Pins 4-7 (7Seg & Bar Graph)
 
   SPCR   = (1<<SPE) | (1<<MSTR) | (0<<CPOL) | (0<<CPHA); // Enable SPI, master mode, clk low on idle, leading edge sample
@@ -177,6 +177,40 @@ uint8_t spi_rw8(uint8_t write8){
 //**********************************************************************
 
 
+//***********************************************************************
+//                            encoder                               
+//**********************************************************************
+uint8_t encoders(uint8_t encoder, uint8_t old_encoder,uint8_t incdec_mode, uint8_t display_count){
+	// Add HERE
+	uint8_t encoder1 = encoder & ~0x03;
+	uint8_t encoder2 = (encoder>>2) & ~0x03;
+
+        uint8_t old_encoder1 = old_encoder & ~0x03;
+        uint8_t old_encoder2 = (old_encoder>>2) & ~0x03;	
+
+
+	if((encoder1 | ~0x01) == 0xFF && (encoder1 != old_encoder1)){
+		if((old_encoder1 | ~0x02) == 0x00)(display_count = display_count - incdec_mode);
+		else{
+		display_count = display_count - incdec_mode;
+		}
+	}
+
+        if((encoder2 | ~0x01) == 0xFF && (encoder2 != old_encoder2)){
+                if((old_encoder2 | ~0x02) == 0x00)(display_count = display_count - incdec_mode);
+                else{
+                display_count = display_count - incdec_mode;
+                };
+        }
+
+	return(display_count);
+}
+//**********************************************************************
+
+
+
+
+
 
 
 
@@ -193,8 +227,8 @@ ISR(TIMER0_OVF_vect){
 	PORTA = 0xFF; // PortA enable Pull Ups
 
   //enable the tristate buffer for the pushbuttons 
-        DDRB = (1<<PB4 | 1<<PB5 | 1<<PB6 | 1<<PB7);
-        PORTB = PORTB | BUTTONS_ON;
+        //DDRB = (1<<PB4 | 1<<PB5 | 1<<PB6 | 1<<PB7);
+        PORTB = PORTB | (1<<PB4) | (1<<PB5) | (1<<PB6);
 
   // Set the inc/dec mode by reading button board
 	if(chk_buttons(0))(incdec_mode = buttons_to_incdec[(button2 | (button1^0x01))]);
@@ -205,14 +239,17 @@ ISR(TIMER0_OVF_vect){
 
   // Send info to the bargraph (Sending info will read in encoders)
 	encoder =  spi_rw8(incdec_to_bargraph[incdec_mode]); // Send SPI_8bit
+
   // Serial in to the bar graph out to the LEDs
-	PORTD |=  0x04;                   //send rising edge to regclk on HC595 
+	PORTD |=  0x04;                   //send rising edge to regclk on HC595 
 	PORTD &= ~0x04;                   //send falling edge to regclk on HC595
 	
   // Check the encoders
 	if(encoder != old_encoder){
 		// Change in the encoder position
-		
+		encoders(encoder, old_encoder, incdec_mode, display_count);
+
+
 		// To Do Calculate Directions
 		display_count++;
 	}	
@@ -234,7 +271,7 @@ int main(){
 
 //uint8_t display_count = 0x01; //holds count for display 
 uint8_t i; //dummy counter
-uint8_t 7seg_sum = 0; //Set the initial 7seg Value
+//uint8_t 7seg_sum = 0; //Set the initial 7seg Value
 
 //volatile uint8_t incdec_mode = 0;
 //volatile uint8_t button1 = 0;
@@ -261,15 +298,15 @@ while(1){                             //main while loop
 
 // Send the Digits to the Display
   //bound the count to 0 - 1023
-        if(7seg_sum > 1023)(7seg_sum = 7seg_sum - 1023);
+        if(display_count > 1023)(display_count = display_count - 1023);
   //break up the disp_value to 4, BCD digits in the array: call (segsum)
-        segsum(7seg_sum);
+        segsum(display_count);
   //bound a counter (0-4) to keep track of digit to display 
-        int i = 0;
+        i = 0;
   //send 7 segment code to LED segments
         for(;i<5;i++){
-                PORTA = segment_data[counter];
-                PORTB = counter<<4 | 0<<PB7;
+                PORTA = segment_data[i];
+                PORTB = i<<4 | 0<<PB7;
                 _delay_ms(1);
         }
 
