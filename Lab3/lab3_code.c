@@ -211,13 +211,6 @@ uint8_t encoders(uint8_t encoder, uint8_t old_encoder,uint8_t incdec_mode, uint8
 
 
 
-
-
-
-
-
-
-
 //***********************************************************************
 //                            Interrupts
 //**********************************************************************
@@ -226,9 +219,9 @@ ISR(TIMER0_OVF_vect){
 	DDRA = 0x00; // PortA as an input
 	PORTA = 0xFF; // PortA enable Pull Ups
 
-  //enable the tristate buffer for the pushbuttons 
+  //enable the tristate buffer for the pushbuttons disable 7Seg and Bar Graph
         //DDRB = (1<<PB4 | 1<<PB5 | 1<<PB6 | 1<<PB7);
-        PORTB = PORTB | (1<<PB4) | (1<<PB5) | (1<<PB6);
+        PORTB = PORTB | (1<<PB4) | (1<<PB5) | (1<<PB6) | (1<<PB7);
 
   // Set the inc/dec mode by reading button board
 	if(chk_buttons(0))(incdec_mode = buttons_to_incdec[(button2 | (button1^0x01))]);
@@ -237,12 +230,20 @@ ISR(TIMER0_OVF_vect){
         if(chk_buttons(1))(incdec_mode = buttons_to_incdec[((button2^0x02) | (button1))]);
         // The state of button2 is flipped ORd with button1 state and sets incdec mode 
 
+	// Turn off the button board PWM high	
+	PORTB &= ~((1<<PB4) | (1<<PB5) | (1<<PB6) | (0<<PB7));
+	DDRA = 0xFF; //DDRA Output
+	PORTA = 0xFF; //Turn Off The 7Seg
+	
   // Send info to the bargraph (Sending info will read in encoders)
+	PORTD &= ~(1<<PD2); //Storage Reg for HC595 low
+	PORTE &= ~((1<<PE6) | (1<<PE7)); //Encoder Shift Reg Clk en Low, Load Mode
+	PORTE |= (1<<PE7); //Shift Mode
 	encoder =  spi_rw8(incdec_to_bargraph[incdec_mode]); // Send SPI_8bit
 
   // Serial in to the bar graph out to the LEDs
-	PORTD |=  0x04;                   //send rising edge to regclk on HC595 
-	PORTD &= ~0x04;                   //send falling edge to regclk on HC595
+	//PORTD |=  0x04;                   //send rising edge to regclk on HC595 
+	//PORTD &= ~0x04;                   //send falling edge to regclk on HC595
 	
   // Check the encoders
 	if(encoder != old_encoder){
@@ -251,13 +252,13 @@ ISR(TIMER0_OVF_vect){
 
 
 		// To Do Calculate Directions
-		display_count++;
+		//display_count++;
 	}	
-  // Return the DDRs to original states
-	DDRA = DDRA_OUTPUT;
-	PORTA = 0xFF; //Keeps the 7-Seg off untill back in main
+  // Return the to original states
+	PORTD |= (1<<PD2); //SS_Bar Low
+	PORTE |= (1<<PE6) | (1<<PE7); //Clk enable high, Shift mode
+	PORTB &= ~(1<<PB7);
   // Disable the button board tristates
-        PORTB |= (0<<PB4) | (0<<PB5) | (0<<PB6) | (1<<PB7);
 
 
 }
@@ -283,9 +284,8 @@ init_tcnt0(); // initalize TIMER/COUNTER0
 
 // Set the DDR for Ports
 DDRA = DDRA_OUTPUT;
-DDRE = (1<<PE6);
+DDRE = (1<<PE6) | (1<<PE7);
 DDRD = (1<<PD2);
-
 
 // Read the starting encoder positions
 old_encoder = spi_rw8(0x00);
@@ -311,42 +311,5 @@ while(1){                             //main while loop
         }
 
 
-
-
-
-
-
-
-
-
-
-
-// Send the mode to the 
-
-
-
-
-    SPDR = display_count;//send display_count to the display 
-
-    while (bit_is_clear(SPSR,SPIF)){} //wait till SPI data has been sent out
-
-    PORTB |=  0x01;                   //send rising edge to regclk on HC595 
-    PORTB &= ~0x01;                   //send falling edge to regclk on HC595
-
-    display_count = display_count << 1;//shift display_count for next time 
-
-    if(display_count==0x00){display_count=0x01;} //set display_count back to 1st positon
-    for(i=0; i<=4; i++){_delay_ms(100);}         //0.5 sec delay
- 
-
-
  } //while(1)
 } //main
-
-
-
-
-
-
-
- 
