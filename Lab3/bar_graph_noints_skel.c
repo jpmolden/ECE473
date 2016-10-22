@@ -22,7 +22,7 @@
 void spi_init(void){
   DDRB   = 0x07; //output mode for SS, MOSI, SCLK
 
-  SPCR   = (1<<MSTR) | (0<<CPOL) | (0<<CPHA); //master mode, clk low on idle, leading edge sample
+  SPCR   = (<<SPE) | (1<<MSTR) | (0<<CPOL) | (0<<CPHA); //master mode, clk low on idle, leading edge sample
 
   SPSR   = (1<<SPI2X); //choose double speed operation
  }//spi_init

@@ -45,19 +45,24 @@ uint8_t dec_to_7seg[12]={
         0x7F,   //Colon
 	};
 
-uint8_t incdec_to_bargraph[4]={
-        0x00,   //0
+uint8_t incdec_to_bargraph[5]={
+        0xB0,   //0
         0x01,   //1
-        0x03,   //2
-        0x0F,   //4
+        0x83,   //2
+        0xFF,   //Not used
+	0x4F,	//4
         };
 
 uint8_t buttons_to_incdec[4]={
         0x01,   //0
         0x02,   //1
         0x04,   //2
-        0x00,   //4
+        0x00,
         };
+
+uint8_t encoder_lookup[16]={0,2,1,0,1,0,0,2,2,0,0,1,0,1,2,0};
+//uint8_t encoder_lookup[16]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+
 
 
 volatile uint8_t incdec_mode = 0;
@@ -143,7 +148,7 @@ void spi_init(){
 
   SPCR   = (1<<SPE) | (1<<MSTR) | (0<<CPOL) | (0<<CPHA); // Enable SPI, master mode, clk low on idle, leading edge sample
 
-  SPSR   = (1<<SPI2X); //choose double speed operation
+  SPSR   = (0<<SPI2X); //No double speed operation
  }//spi_init
 //**********************************************************************
 
@@ -169,10 +174,12 @@ void init_tcnt0(){
 //**********************************************************************
 uint8_t spi_rw8(uint8_t write8){
 // Add HERE
+	uint8_t data = 0x00;
 	SPDR = write8;				// Write to the Serial Port Data Reg
 	while(bit_is_clear(SPSR,SPIF)){}	
 		// Wait untill Status Reg interrupt flag raised
-	return(SPDR);
+	data = SPDR;
+	return(data);
 }
 //**********************************************************************
 
@@ -180,30 +187,42 @@ uint8_t spi_rw8(uint8_t write8){
 //***********************************************************************
 //                            encoder                               
 //**********************************************************************
-uint8_t encoders(uint8_t encoder, uint8_t old_encoder,uint8_t incdec_mode, uint8_t display_count){
+void encoders(uint8_t encoder_in, uint8_t old_encoder_in){
 	// Add HERE
-	uint8_t encoder1 = encoder & ~0x03;
-	uint8_t encoder2 = (encoder>>2) & ~0x03;
-
-        uint8_t old_encoder1 = old_encoder & ~0x03;
-        uint8_t old_encoder2 = (old_encoder>>2) & ~0x03;	
-
-
-	if((encoder1 | ~0x01) == 0xFF && (encoder1 != old_encoder1)){
-		if((old_encoder1 | ~0x02) == 0x00)(display_count = display_count - incdec_mode);
-		else{
-		display_count = display_count - incdec_mode;
-		}
+	
+	uint8_t direction = encoder_lookup[((old_encoder & 0x03)<<2) | (encoder & 0x03)];
+	switch(direction){
+		case 0:
+			break;
+		case 1:
+			display_count = display_count - incdec_mode;
+			break;
+		case 2:
+			display_count = display_count + incdec_mode;
+			break;
+		default:
+			display_count = display_count;
 	}
+	
 
-        if((encoder2 | ~0x01) == 0xFF && (encoder2 != old_encoder2)){
-                if((old_encoder2 | ~0x02) == 0x00)(display_count = display_count - incdec_mode);
-                else{
-                display_count = display_count - incdec_mode;
-                };
+        direction = encoder_lookup[(old_encoder & 0x0C) | ((encoder & 0x0C)>>2)];
+        switch(direction){
+                case 0:
+                        break;
+                case 1:
+                        display_count = display_count - incdec_mode;
+                        break;
+                case 2:
+                        display_count = display_count + incdec_mode;
+                        break;
+                default:
+                        display_count = display_count;
         }
+	//display_count++; //Test
+	old_encoder = encoder;
 
-	return(display_count);
+
+	
 }
 //**********************************************************************
 
@@ -214,32 +233,50 @@ uint8_t encoders(uint8_t encoder, uint8_t old_encoder,uint8_t incdec_mode, uint8
 //***********************************************************************
 //                            Interrupts
 //**********************************************************************
-ISR(TIMER0_OVF_vect){
+ISR(TIMER0_COMP_vect){
   //Read the buttons
+        PORTB = PORTB | (1<<PB4) | (1<<PB5) | (1<<PB6) | (1<<PB7);
+
 	DDRA = 0x00; // PortA as an input
 	PORTA = 0xFF; // PortA enable Pull Ups
 
   //enable the tristate buffer for the pushbuttons disable 7Seg and Bar Graph
         //DDRB = (1<<PB4 | 1<<PB5 | 1<<PB6 | 1<<PB7);
-        PORTB = PORTB | (1<<PB4) | (1<<PB5) | (1<<PB6) | (1<<PB7);
+//        PORTB = PORTB | (1<<PB4) | (1<<PB5) | (1<<PB6) | (1<<PB7);
 
   // Set the inc/dec mode by reading button board
-	if(chk_buttons(0))(incdec_mode = buttons_to_incdec[(button2 | (button1^0x01))]);
-	// The state of button1 is flipped ORd with button2 state and sets incdec mode 
+//	_delay_us(2);
 
-        if(chk_buttons(1))(incdec_mode = buttons_to_incdec[((button2^0x02) | (button1))]);
-        // The state of button2 is flipped ORd with button1 state and sets incdec mode 
+
+        if(chk_buttons(1)){
+                button2 = button2^0x02;
+                (incdec_mode = buttons_to_incdec[((button2) | (button1))]);
+        }
+
+        if(chk_buttons(0)){
+                button1 = button1^0x01;
+		(incdec_mode = buttons_to_incdec[((button2) | (button1^0x01))]);
+	}
+
+	// The state of button2 is flipped ORd with button1 state and sets incdec mode 
 
 	// Turn off the button board PWM high	
 	PORTB &= ~((1<<PB4) | (1<<PB5) | (1<<PB6) | (0<<PB7));
+
+
 	DDRA = 0xFF; //DDRA Output
 	PORTA = 0xFF; //Turn Off The 7Seg
 	
   // Send info to the bargraph (Sending info will read in encoders)
 	PORTD &= ~(1<<PD2); //Storage Reg for HC595 low
-	PORTE &= ~((1<<PE6) | (1<<PE7)); //Encoder Shift Reg Clk en Low, Load Mode
+	PORTE &= ~((1<<PE6) | (1<<PE7) | (1<<PE5)); //Encoder Shift Reg Clk en Low, Load Mode
 	PORTE |= (1<<PE7); //Shift Mode
-	encoder =  spi_rw8(incdec_to_bargraph[incdec_mode]); // Send SPI_8bit
+//	encoder = spi_rw8(incdec_to_bargraph[incdec_mode]); // Send SPI_8bit
+        encoder = spi_rw8(incdec_mode); // Send SPI_8bit
+
+
+//        encoder =  spi_rw8(0x55); // Send SPI_8bit
+
 
   // Serial in to the bar graph out to the LEDs
 	//PORTD |=  0x04;                   //send rising edge to regclk on HC595 
@@ -248,16 +285,16 @@ ISR(TIMER0_OVF_vect){
   // Check the encoders
 	if(encoder != old_encoder){
 		// Change in the encoder position
-		encoders(encoder, old_encoder, incdec_mode, display_count);
+		encoders(encoder, old_encoder);
 
 
 		// To Do Calculate Directions
-		//display_count++;
+	//	display_count++;
 	}	
   // Return the to original states
 	PORTD |= (1<<PD2); //SS_Bar Low
-	PORTE |= (1<<PE6) | (1<<PE7); //Clk enable high, Shift mode
-	PORTB &= ~(1<<PB7);
+	PORTE |= (1<<PE6) | (1<<PE7) | (0<<PE5); //Clk enable high, Shift mode
+	PORTB &= ~((1<<PB4) | (1<<PB5) | (1<<PB6) | (1<<PB7)); // Sel 0
   // Disable the button board tristates
 
 
@@ -284,11 +321,11 @@ init_tcnt0(); // initalize TIMER/COUNTER0
 
 // Set the DDR for Ports
 DDRA = DDRA_OUTPUT;
-DDRE = (1<<PE6) | (1<<PE7);
+DDRE = (1<<PE5) | (1<<PE6) | (1<<PE7);
 DDRD = (1<<PD2);
-
+incdec_mode = 0x01;
 // Read the starting encoder positions
-old_encoder = spi_rw8(0x00);
+//old_encoder = spi_rw8(0x55);
 sei(); // enable global interrupts
 
 
