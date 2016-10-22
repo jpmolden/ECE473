@@ -46,7 +46,7 @@ uint8_t dec_to_7seg[12]={
 	};
 
 uint8_t incdec_to_bargraph[5]={
-        0xB0,   //0
+        0xC0,   //0
         0x01,   //1
         0x83,   //2
         0xFF,   //Not used
@@ -249,13 +249,13 @@ ISR(TIMER0_COMP_vect){
 
 
         if(chk_buttons(1)){
-                button2 = button2^0x02;
-                (incdec_mode = buttons_to_incdec[((button2) | (button1))]);
+                button2 = (button2^0x02)&0x02;
+                (incdec_mode = buttons_to_incdec[((button2) | (button1))&0x03]);
         }
 
         if(chk_buttons(0)){
-                button1 = button1^0x01;
-		(incdec_mode = buttons_to_incdec[((button2) | (button1^0x01))]);
+                button1 = (button1^0x01)&0x01;
+		(incdec_mode = buttons_to_incdec[((button2) | (button1))&0x03]);
 	}
 
 	// The state of button2 is flipped ORd with button1 state and sets incdec mode 
@@ -271,8 +271,8 @@ ISR(TIMER0_COMP_vect){
 	PORTD &= ~(1<<PD2); //Storage Reg for HC595 low
 	PORTE &= ~((1<<PE6) | (1<<PE7) | (1<<PE5)); //Encoder Shift Reg Clk en Low, Load Mode
 	PORTE |= (1<<PE7); //Shift Mode
-//	encoder = spi_rw8(incdec_to_bargraph[incdec_mode]); // Send SPI_8bit
-        encoder = spi_rw8(incdec_mode); // Send SPI_8bit
+	encoder = spi_rw8(incdec_to_bargraph[incdec_mode]); // Send SPI_8bit
+//        encoder = spi_rw8(incdec_mode); // Send SPI_8bit
 
 
 //        encoder =  spi_rw8(0x55); // Send SPI_8bit
