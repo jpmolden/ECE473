@@ -14,6 +14,14 @@
 //  PORTB bits 4-6 go to a,b,c inputs of the 74HC138.
 //  PORTB bit 7 goes to the PWM transistor base.
 
+//  PORTB0-3 are used for SPI to the encoder and bargraph boards
+//  PORTB.1 = SCLK, PORTB.2 = MOSI, PORTB.3 = MISO
+
+//  PORTE.5 = Bar graph ~OE, PORTE.6 = Encoder SR ~SCLK_enable
+//  PORTE.6 = Encoder SR Shift/~Load
+
+//  PORTD.2 = Bar Graph Storage Reg CLK
+
 //#define F_CPU 16000000 // cpu speed in hertz 
 #define TRUE 1
 #define FALSE 0
@@ -45,6 +53,8 @@ uint8_t dec_to_7seg[12]={
         0x7F,   //Colon
 	};
 
+
+// Bargraph display values
 uint8_t incdec_to_bargraph[5]={
         0xC0,   //0
         0x01,   //1
@@ -53,6 +63,7 @@ uint8_t incdec_to_bargraph[5]={
 	0x4F,	//4
         };
 
+// Buttons to inc_dec mode lookup table
 uint8_t buttons_to_incdec[4]={
         0x01,   //0
         0x02,   //1
@@ -60,6 +71,7 @@ uint8_t buttons_to_incdec[4]={
         0x00,
         };
 
+// State machine look up table
 uint8_t encoder_lookup[16]={0,2,1,0,1,0,0,2,2,0,0,1,0,1,2,0};
 //uint8_t encoder_lookup[16]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
@@ -70,7 +82,7 @@ volatile uint8_t button1 = 0;
 volatile uint8_t button2 = 0;
 volatile uint8_t encoder = 0;
 volatile uint8_t old_encoder = 0;
-volatile uint8_t display_count = 0x00; //holds count for display 
+volatile uint8_t display_count = 0x00; //holds count for 7seg display 
 
 
 
@@ -127,15 +139,8 @@ void segsum(uint16_t sum) {
         if(sum == 0){
                  //segment_data[0] = SEG_OFF;
         }
-
-        //for(i=1; i>no_digits; i--){
-        //      segment_data[i] = SEG_OFF;
-        //}
-  //now move data to right place for misplaced colon position
-  // Data is placed into the correct posistion
 }//segment_sum
 //***********************************************************************************
-
 
 
 
@@ -169,6 +174,8 @@ void init_tcnt0(){
 //**********************************************************************
 
 
+
+
 //***********************************************************************
 //                            spi_read_write_8bit                               
 //**********************************************************************
@@ -184,12 +191,17 @@ uint8_t spi_rw8(uint8_t write8){
 //**********************************************************************
 
 
+
+
 //***********************************************************************
 //                            encoder                               
 //**********************************************************************
 void encoders(uint8_t encoder_in, uint8_t old_encoder_in){
-	// Add HERE
-	
+	// The direction is determined by a state machine look up table 0=no change
+	// 1=CCW, 2=CW
+	//The old encoder value is place in posistion in b2 b3, 0x03 masks out other 1's	
+
+	//Check encoder 1		
 	uint8_t direction = encoder_lookup[((old_encoder & 0x03)<<2) | (encoder & 0x03)];
 	switch(direction){
 		case 0:
@@ -204,7 +216,7 @@ void encoders(uint8_t encoder_in, uint8_t old_encoder_in){
 			display_count = display_count;
 	}
 	
-
+	//Check encoder 2
         direction = encoder_lookup[(old_encoder & 0x0C) | ((encoder & 0x0C)>>2)];
         switch(direction){
                 case 0:
@@ -218,10 +230,8 @@ void encoders(uint8_t encoder_in, uint8_t old_encoder_in){
                 default:
                         display_count = display_count;
         }
-	//display_count++; //Test
+	//Replace the old encoder value
 	old_encoder = encoder;
-
-
 	
 }
 //**********************************************************************
@@ -240,14 +250,6 @@ ISR(TIMER0_COMP_vect){
 	DDRA = 0x00; // PortA as an input
 	PORTA = 0xFF; // PortA enable Pull Ups
 
-  //enable the tristate buffer for the pushbuttons disable 7Seg and Bar Graph
-        //DDRB = (1<<PB4 | 1<<PB5 | 1<<PB6 | 1<<PB7);
-//        PORTB = PORTB | (1<<PB4) | (1<<PB5) | (1<<PB6) | (1<<PB7);
-
-  // Set the inc/dec mode by reading button board
-//	_delay_us(2);
-
-
         if(chk_buttons(1)){
                 button2 = (button2^0x02)&0x02;
                 (incdec_mode = buttons_to_incdec[((button2) | (button1))&0x03]);
@@ -263,7 +265,6 @@ ISR(TIMER0_COMP_vect){
 	// Turn off the button board PWM high	
 	PORTB &= ~((1<<PB4) | (1<<PB5) | (1<<PB6) | (0<<PB7));
 
-
 	DDRA = 0xFF; //DDRA Output
 	PORTA = 0xFF; //Turn Off The 7Seg
 	
@@ -272,24 +273,11 @@ ISR(TIMER0_COMP_vect){
 	PORTE &= ~((1<<PE6) | (1<<PE7) | (1<<PE5)); //Encoder Shift Reg Clk en Low, Load Mode
 	PORTE |= (1<<PE7); //Shift Mode
 	encoder = spi_rw8(incdec_to_bargraph[incdec_mode]); // Send SPI_8bit
-//        encoder = spi_rw8(incdec_mode); // Send SPI_8bit
-
-
-//        encoder =  spi_rw8(0x55); // Send SPI_8bit
-
-
-  // Serial in to the bar graph out to the LEDs
-	//PORTD |=  0x04;                   //send rising edge to regclk on HC595 
-	//PORTD &= ~0x04;                   //send falling edge to regclk on HC595
 	
   // Check the encoders
 	if(encoder != old_encoder){
 		// Change in the encoder position
 		encoders(encoder, old_encoder);
-
-
-		// To Do Calculate Directions
-	//	display_count++;
 	}	
   // Return the to original states
 	PORTD |= (1<<PD2); //SS_Bar Low
@@ -307,14 +295,7 @@ ISR(TIMER0_COMP_vect){
 //**********************************************************************
 int main(){
 
-//uint8_t display_count = 0x01; //holds count for display 
 uint8_t i; //dummy counter
-//uint8_t 7seg_sum = 0; //Set the initial 7seg Value
-
-//volatile uint8_t incdec_mode = 0;
-//volatile uint8_t button1 = 0;
-//volatile uint8_t button2 = 0;
-//volatile uint8_t encoder = 0;
 
 spi_init();  //initalize SPI port
 init_tcnt0(); // initalize TIMER/COUNTER0
@@ -325,14 +306,13 @@ DDRE = (1<<PE5) | (1<<PE6) | (1<<PE7);
 DDRD = (1<<PD2);
 incdec_mode = 0x01;
 // Read the starting encoder positions
-//old_encoder = spi_rw8(0x55);
+old_encoder = spi_rw8(0x55);
 sei(); // enable global interrupts
 
 
 while(1){                             //main while loop
 
 // Decode the Display Digits
-
 // Send the Digits to the Display
   //bound the count to 0 - 1023
         if(display_count > 1023)(display_count = display_count - 1023);
@@ -346,7 +326,6 @@ while(1){                             //main while loop
                 PORTB = i<<4 | 0<<PB7;
                 _delay_ms(1);
         }
-
 
  } //while(1)
 } //main
