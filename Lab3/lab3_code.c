@@ -324,7 +324,7 @@ while(1){                             //main while loop
         for(;i<5;i++){
                 PORTA = segment_data[i];
                 PORTB = i<<4 | 0<<PB7;
-                _delay_ms(1);
+                _delay_ms(0.25);
         }
 
  } //while(1)
