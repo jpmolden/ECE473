@@ -22,7 +22,7 @@
 void spi_init(void){
   DDRB   = 0x07; //output mode for SS, MOSI, SCLK
 
-  SPCR   = (1<<MSTR) | (0<<CPOL) | (0<<CPHA); //master mode, clk low on idle, leading edge sample
+  SPCR   = (1<<SPE) | (1<<MSTR) | (0<<CPOL) | (0<<CPHA); //master mode, clk low on idle, leading edge sample
 
   SPSR   = (1<<SPI2X); //choose double speed operation
  }//spi_init
@@ -33,10 +33,11 @@ int main(){
 
 uint8_t display_count = 0x01; //holds count for display 
 uint8_t i; //dummy counter
-
+DDRB = 0xFF;
 spi_init();  //initalize SPI port
-while(1){                             //main while loop
 
+while(1){                             //main while loop
+    PORTB = 0x00;
     SPDR = display_count;//send display_count to the display 
 
     while (bit_is_clear(SPSR,SPIF)){} //wait till SPI data has been sent out
