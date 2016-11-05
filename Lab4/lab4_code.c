@@ -20,7 +20,7 @@
 //  PORTE.5 = Bar graph ~OE, PORTE.6 = Encoder SR ~SCLK_enable
 //  PORTE.6 = Encoder SR Shift/~Load
 
-//  PORTD.2 = Bar Graph Storage Reg CLK
+// 
 
 //#define F_CPU 16000000 // cpu speed in hertz 
 #define TRUE 1
@@ -86,6 +86,74 @@ volatile uint8_t display_count = 0x00; //holds count for 7seg display
 
 
 
+//Function Declarations
+void spi_init();
+uint8_t spi_rw8(uint8_t write8);
+void segsum(uint16_t sum);
+
+
+//Variable Declarations
+volatile uint8_t hours = 0;
+volatile uint8_t mins = 0;
+volatile uint8_t seconds = 0;
+
+volatile uint8_t clockmode = 0;
+
+
+
+
+//***********************************************************************
+//                            main                               
+//**********************************************************************
+int main(){
+
+uint8_t i; //dummy counter
+
+
+
+spi_init();  //initalize SPI port
+init_tcnt0(); // initalize TIMER/COUNTER0
+// To Do 
+
+
+
+
+
+// Set the DDR for Ports
+DDRA = DDRA_OUTPUT;
+DDRE = (1<<PE5) | (1<<PE6) | (1<<PE7);
+DDRD = (1<<PD2);
+incdec_mode = 0x01;
+// Read the starting encoder positions
+old_encoder = spi_rw8(0x55);
+
+sei(); // enable global interrupts
+
+
+while(1){                             //main while loop
+
+// Decode the Display Digits
+// Send the Digits to the Display
+  //bound the count to 0 - 1023
+        if(display_count > 1023)(display_count = display_count - 1023);
+  //break up the disp_value to 4, BCD digits in the array: call (segsum)
+        segsum(display_count);
+  //bound a counter (0-4) to keep track of digit to display 
+        i = 0;
+  //send 7 segment code to LED segments
+        for(;i<5;i++){
+                PORTA = segment_data[i];
+                PORTB = i<<4 | 0<<PB7;
+                _delay_ms(0.25);
+        }
+
+ } //while(1)
+} //main
+
+
+
+
+
 
 //******************************************************************************
 //                            chk_buttons                                      
@@ -109,7 +177,7 @@ uint8_t chk_buttons(uint8_t button) {
 //takes a 16-bit binary input value and places the appropriate equivalent 4 digit 
 //BCD segment code in the array segment_data for display.                       
 //array is loaded at exit as:  |digit3|digit2|colon|digit1|digit0|
-void segsum(uint16_t sum) {
+void segsum(uint16_t sum){
   //determine how many digits there are 
         //output to segment_data[5]
         //unsigned int no_digits = 0;
@@ -164,14 +232,31 @@ void spi_init(){
 //**********************************************************************
 void init_tcnt0(){
 // Add HERE
+// Timer counter 0 initializeed to overflow every 1 second using a 32768Hz 
+// External clock and a 128 prescaler. This way every overflow(256) is 1sec
 
   ASSR  |=  (1<<AS0);                //run off external 32khz osc (TOSC)
   //enable interrupts for output compare match 0
-  TIMSK |= (1<<OCIE0);
-  TCCR0 |= (1<<WGM01) | (1<<CS00);  //CTC mode, no prescale
-  OCR0  |=  0xFF;                   //compare at 256
+  TIMSK |= (1<<TOIE0);
+  TCCR0 =  (1<<CS02) | (1<<CS01) | (0<<CS00);  //Normal mode, 128 prescale
+  //OCR0  |=  0xFF;                   //compare at 256
 }
 //**********************************************************************
+
+
+
+
+//***********************************************************************
+//                            Timer0_overflow_interrupt                               
+//**********************************************************************
+ISR(TIMER0_OVF_vect){
+	//This intterupt should occur every second
+	static uint8_t seconds = 0; //Holds the seconds between interupts
+	seconds++;
+	if((seconds % 60) == 0){mins++;}
+}
+	
+
 
 
 
@@ -243,6 +328,11 @@ void encoders(uint8_t encoder_in, uint8_t old_encoder_in){
 //***********************************************************************
 //                            Interrupts
 //**********************************************************************
+
+//To Do Redefine ISR to use other intterupt source
+
+
+
 ISR(TIMER0_COMP_vect){
   //Read the buttons
         PORTB = PORTB | (1<<PB4) | (1<<PB5) | (1<<PB6) | (1<<PB7);
@@ -269,7 +359,7 @@ ISR(TIMER0_COMP_vect){
 	PORTA = 0xFF; //Turn Off The 7Seg
 	
   // Send info to the bargraph (Sending info will read in encoders)
-	PORTD &= ~(1<<PD2); //Storage Reg for HC595 low
+
 	PORTE &= ~((1<<PE6) | (1<<PE7) | (1<<PE5)); //Encoder Shift Reg Clk en Low, Load Mode
 	PORTE |= (1<<PE7); //Shift Mode
 	encoder = spi_rw8(incdec_to_bargraph[incdec_mode]); // Send SPI_8bit
@@ -293,39 +383,58 @@ ISR(TIMER0_COMP_vect){
 //***********************************************************************
 //                            main                               
 //**********************************************************************
-int main(){
+//int main(){
 
-uint8_t i; //dummy counter
+//uint8_t i; //dummy counter
 
-spi_init();  //initalize SPI port
-init_tcnt0(); // initalize TIMER/COUNTER0
+//Clock Variables
+//uint8_t hours = 0;
+//uint8_t mins = 0;
+//uint8_t seconds = 0;
+
+
+
+
+
+
+//s/pi_init();  //initalize SPI port
+//init_tcnt0(); // initalize TIMER/COUNTER0
+// To Do 
+
+
+
+
+
+
+
+
 
 // Set the DDR for Ports
-DDRA = DDRA_OUTPUT;
-DDRE = (1<<PE5) | (1<<PE6) | (1<<PE7);
-DDRD = (1<<PD2);
-incdec_mode = 0x01;
+//DDRA = DDRA_OUTPUT;
+//DDRE = (1<<PE5) | (1<<PE6) | (1<<PE7);
+///DDRD = (1<<PD2);
+//incdec_mode = 0x01;
 // Read the starting encoder positions
-old_encoder = spi_rw8(0x55);
-sei(); // enable global interrupts
+//old_encoder = spi_rw8(0x55);
+//sei(); // enable global interrupts
 
 
-while(1){                             //main while loop
+//while(1){                             //main while loop
 
 // Decode the Display Digits
 // Send the Digits to the Display
   //bound the count to 0 - 1023
-        if(display_count > 1023)(display_count = display_count - 1023);
+//        if(display_count > 1023)(display_count = display_count - 1023);
   //break up the disp_value to 4, BCD digits in the array: call (segsum)
-        segsum(display_count);
+//        segsum(display_count);
   //bound a counter (0-4) to keep track of digit to display 
-        i = 0;
+//        i = 0;
   //send 7 segment code to LED segments
-        for(;i<5;i++){
-                PORTA = segment_data[i];
-                PORTB = i<<4 | 0<<PB7;
-                _delay_ms(0.25);
-        }
+//        for(;i<5;i++){
+//                PORTA = segment_data[i];
+//                PORTB = i<<4 | 0<<PB7;
+//                _delay_ms(0.25);
+// //       }
 
- } //while(1)
-} //main
+// } //while(1)
+//} //main
