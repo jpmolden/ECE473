@@ -99,6 +99,8 @@ void init_tcnt2();
 uint16_t hours_mins_to_7segsum(uint8_t xhrs, uint8_t xmins);
 void check_user_input();
 void encoders(uint8_t encoder_in, uint8_t old_encoder_in);
+void disable_timer2();
+
 
 
 //Variable Declarations
@@ -303,15 +305,38 @@ ISR(TIMER2_OVF_vect){
 	//
 	static uint8_t timer_tick;
 	timer_tick++;
-	if((timer_tick = 100)){
+	if((timer_tick == 250)){
 		timer_tick = 0;
-		//check_user_input();
+		disable_timer2();
+		check_user_input();
+		init_tcnt2();
 	}
 }
 
 ISR(TIMER2_COMP_vect){
         //TO DO
 }
+
+
+
+
+//***********************************************************************
+//                            timer/counter2_init - PWM Dimming & TOV Butttons                               
+//**********************************************************************
+void disable_timer2(){
+// Add HERE
+// Timer counter 0 initializeed to overflow every 1 second using a 32768Hz 
+// External clock and a 128 prescaler. This way every overflow(256) is 1sec
+
+  //enable interrupts for output compare match 0
+  TCCR2 = (1<<WGM21) | (1<<WGM20) | (1<<COM21) | (1<<COM20) | (0<<CS22) | (0<<CS21) | (0<<CS20);
+        //Fast-PWM mode, Inverting PWM Mode, 0 prescale, OC2(PB7)(PWM) Connected
+        //0-256 takes 1ms (16k CLKIO cycles)
+}
+//**********************************************************************
+
+
+
 
 
 void check_user_input(){
