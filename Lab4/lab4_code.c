@@ -33,6 +33,10 @@
 #define DDRA_OUTPUT 0xFF
 #define DDRA_INPUT 0x00
 
+#define Clock_mode 0
+#define Alarm_set_mode 1
+#define Alarm_buzz_mode 2
+
 
 //holds data to be sent to the segments. logic zero turns segment on
 uint8_t segment_data[5];
@@ -50,7 +54,7 @@ uint8_t dec_to_7seg[12]={
         0x80,   //8
         0x98,   //9 
         0xFF,   //OFF
-        0x7F,   //Colon
+        0xFC,   //Colon
 	};
 
 
@@ -89,15 +93,17 @@ volatile uint8_t display_count = 0x00; //holds count for 7seg display
 //Function Declarations
 void spi_init();
 uint8_t spi_rw8(uint8_t write8);
-void segsum(uint16_t sum);
+void segsum(uint8_t xmode);
+void init_tcnt0();
+uint16_t hours_mins_to_7segsum(uint8_t xhrs, uint8_t xmins);
 
 
 //Variable Declarations
-volatile uint8_t hours = 0;
-volatile uint8_t mins = 0;
+volatile uint8_t hours = 11;
+volatile uint8_t mins = 59;
 volatile uint8_t seconds = 0;
 
-volatile uint8_t clockmode = 0;
+volatile uint8_t clockmode = Clock_mode;
 
 
 
@@ -111,7 +117,7 @@ uint8_t i; //dummy counter
 
 
 
-spi_init();  //initalize SPI port
+spi_init();  //initalize SPI port, also initializes DDB
 init_tcnt0(); // initalize TIMER/COUNTER0
 // To Do 
 
@@ -123,9 +129,9 @@ init_tcnt0(); // initalize TIMER/COUNTER0
 DDRA = DDRA_OUTPUT;
 DDRE = (1<<PE5) | (1<<PE6) | (1<<PE7);
 DDRD = (1<<PD2);
-incdec_mode = 0x01;
+//incdec_mode = 0x01;
 // Read the starting encoder positions
-old_encoder = spi_rw8(0x55);
+//old_encoder = spi_rw8(0x55);
 
 sei(); // enable global interrupts
 
@@ -135,9 +141,9 @@ while(1){                             //main while loop
 // Decode the Display Digits
 // Send the Digits to the Display
   //bound the count to 0 - 1023
-        if(display_count > 1023)(display_count = display_count - 1023);
+		
   //break up the disp_value to 4, BCD digits in the array: call (segsum)
-        segsum(display_count);
+        segsum(clockmode);
   //bound a counter (0-4) to keep track of digit to display 
         i = 0;
   //send 7 segment code to LED segments
@@ -177,7 +183,7 @@ uint8_t chk_buttons(uint8_t button) {
 //takes a 16-bit binary input value and places the appropriate equivalent 4 digit 
 //BCD segment code in the array segment_data for display.                       
 //array is loaded at exit as:  |digit3|digit2|colon|digit1|digit0|
-void segsum(uint16_t sum){
+void segsum(uint8_t xmode){
   //determine how many digits there are 
         //output to segment_data[5]
         //unsigned int no_digits = 0;
@@ -188,25 +194,28 @@ void segsum(uint16_t sum){
 
   //break up decimal sum into 4 digit-segment   
         //The digits (0-9) are used as the index for the seven segment representation
-        segment_data[0] = dec_to_7seg[(sum/1) %10];
-        segment_data[1] = dec_to_7seg[(sum/10) %10];
-        segment_data[2] = SEG_OFF;
-        segment_data[3] = dec_to_7seg[(sum/100) %10];
-        segment_data[4] = dec_to_7seg[(sum/1000) %10];
+        segment_data[0] = dec_to_7seg[(mins/1) %10];
+        segment_data[1] = dec_to_7seg[(mins/10) %10];
+        if((xmode == Clock_mode)){
+		segment_data[2] = dec_to_7seg[10 + (seconds % 2)];
+		//in decto7seg index 11 = OFF, index 12 = Colon
+	}
+	segment_data[3] = dec_to_7seg[((hours)/1) %10];
+        segment_data[4] = dec_to_7seg[((hours)/10) %10];
 
   //blank out leading zero digits
-        if(sum < 1000){
-                segment_data[4] = SEG_OFF;
-        }
-        if(sum < 100){
-                 segment_data[3] = SEG_OFF;
-        }
-        if(sum < 10){
-                 segment_data[1] = SEG_OFF;
-        }
-        if(sum == 0){
-                 //segment_data[0] = SEG_OFF;
-        }
+       // if(sum < 1000){
+               // segment_data[4] = SEG_OFF;
+      //  }
+      //  if(sum < 100){
+                // segment_data[3] = SEG_OFF;
+      //  }
+      //  if(sum < 10){
+               //  segment_data[1] = SEG_OFF;
+      //  }
+      //  if(sum == 0){
+      //           //segment_data[0] = SEG_OFF;
+      //  }
 }//segment_sum
 //***********************************************************************************
 
@@ -237,8 +246,8 @@ void init_tcnt0(){
 
   ASSR  |=  (1<<AS0);                //run off external 32khz osc (TOSC)
   //enable interrupts for output compare match 0
-  TIMSK |= (1<<TOIE0);
-  TCCR0 =  (1<<CS02) | (1<<CS01) | (0<<CS00);  //Normal mode, 128 prescale
+  TIMSK |= (1<<TOIE0);  //TimerOverflow Interrupt Enable
+  TCCR0 =  (1<<CS02) | (0<<CS01) | (1<<CS00);  //Normal mode, 128 prescale, OC0 Disconnected
   //OCR0  |=  0xFF;                   //compare at 256
 }
 //**********************************************************************
@@ -251,13 +260,25 @@ void init_tcnt0(){
 //**********************************************************************
 ISR(TIMER0_OVF_vect){
 	//This intterupt should occur every second
-	static uint8_t seconds = 0; //Holds the seconds between interupts
+	//static uint8_t seconds = 0; //Holds the seconds between interupts
 	seconds++;
-	if((seconds % 60) == 0){mins++;}
+	if((seconds % 60) == 0){
+		mins++;
+		seconds = 0;
+	}
+	if((mins % 60) == 0 & (seconds % 60) == 0){
+		hours++;
+		mins = 0;
+	}
+	if((hours % 24) == 0){
+		hours = 0;
+	}
 }
+
+
+
+
 	
-
-
 
 
 
@@ -378,63 +399,3 @@ ISR(TIMER0_COMP_vect){
 
 }
 
-
-
-//***********************************************************************
-//                            main                               
-//**********************************************************************
-//int main(){
-
-//uint8_t i; //dummy counter
-
-//Clock Variables
-//uint8_t hours = 0;
-//uint8_t mins = 0;
-//uint8_t seconds = 0;
-
-
-
-
-
-
-//s/pi_init();  //initalize SPI port
-//init_tcnt0(); // initalize TIMER/COUNTER0
-// To Do 
-
-
-
-
-
-
-
-
-
-// Set the DDR for Ports
-//DDRA = DDRA_OUTPUT;
-//DDRE = (1<<PE5) | (1<<PE6) | (1<<PE7);
-///DDRD = (1<<PD2);
-//incdec_mode = 0x01;
-// Read the starting encoder positions
-//old_encoder = spi_rw8(0x55);
-//sei(); // enable global interrupts
-
-
-//while(1){                             //main while loop
-
-// Decode the Display Digits
-// Send the Digits to the Display
-  //bound the count to 0 - 1023
-//        if(display_count > 1023)(display_count = display_count - 1023);
-  //break up the disp_value to 4, BCD digits in the array: call (segsum)
-//        segsum(display_count);
-  //bound a counter (0-4) to keep track of digit to display 
-//        i = 0;
-  //send 7 segment code to LED segments
-//        for(;i<5;i++){
-//                PORTA = segment_data[i];
-//                PORTB = i<<4 | 0<<PB7;
-//                _delay_ms(0.25);
-// //       }
-
-// } //while(1)
-//} //main
