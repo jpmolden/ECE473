@@ -95,7 +95,10 @@ void spi_init();
 uint8_t spi_rw8(uint8_t write8);
 void segsum(uint8_t xmode);
 void init_tcnt0();
+void init_tcnt2();
 uint16_t hours_mins_to_7segsum(uint8_t xhrs, uint8_t xmins);
+void check_user_input();
+void encoders(uint8_t encoder_in, uint8_t old_encoder_in);
 
 
 //Variable Declarations
@@ -120,7 +123,7 @@ uint8_t i; //dummy counter
 spi_init();  //initalize SPI port, also initializes DDB
 init_tcnt0(); // initalize TIMER/COUNTER0
 // To Do 
-
+init_tcnt2();
 
 
 
@@ -149,8 +152,8 @@ while(1){                             //main while loop
   //send 7 segment code to LED segments
         for(;i<5;i++){
                 PORTA = segment_data[i];
-                PORTB = i<<4 | 0<<PB7;
-                _delay_ms(0.25);
+                PORTB = i<<4; // | 0<<PB7;
+                _delay_ms(0.5);
         }
 
  } //while(1)
@@ -266,7 +269,7 @@ ISR(TIMER0_OVF_vect){
 		mins++;
 		seconds = 0;
 	}
-	if((mins % 60) == 0 & (seconds % 60) == 0){
+	if(((mins % 60) == 0) & ((seconds % 60) == 0)){
 		hours++;
 		mins = 0;
 	}
@@ -274,6 +277,88 @@ ISR(TIMER0_OVF_vect){
 		hours = 0;
 	}
 }
+
+
+
+//***********************************************************************
+//                            timer/counter2_init - PWM Dimming & TOV Butttons                               
+//**********************************************************************
+void init_tcnt2(){
+// Add HERE
+// Timer counter 0 initializeed to overflow every 1 second using a 32768Hz 
+// External clock and a 128 prescaler. This way every overflow(256) is 1sec
+
+  //enable interrupts for output compare match 0
+  TIMSK |= (1<<TOIE2) | (1<<OCIE2);  //TimerOverflow Interrupt Enable
+  TCCR2 = (1<<WGM21) | (1<<WGM20) | (1<<COM21) | (1<<COM20) | (0<<CS22) | (1<<CS21) | (1<<CS20);
+	//Fast-PWM mode, Inverting PWM Mode, 64 prescale, OC2(PB7)(PWM) Connected
+	//0-256 takes 1ms (16k CLKIO cycles)
+  OCR2 =  0x10;                   //compare at 128(50%)
+}
+//**********************************************************************
+
+
+ISR(TIMER2_OVF_vect){
+	//TO DO
+	//
+	static uint8_t timer_tick;
+	timer_tick++;
+	if((timer_tick = 100)){
+		timer_tick = 0;
+		//check_user_input();
+	}
+}
+
+ISR(TIMER2_COMP_vect){
+        //TO DO
+}
+
+
+void check_user_input(){
+  //Read the buttons
+        PORTB = PORTB | (1<<PB4) | (1<<PB5) | (1<<PB6) | (1<<PB7);
+
+        DDRA = 0x00; // PortA as an input
+        PORTA = 0xFF; // PortA enable Pull Ups
+
+        if(chk_buttons(1)){
+                button2 = (button2^0x02)&0x02;
+                (incdec_mode = buttons_to_incdec[((button2) | (button1))&0x03]);
+        }
+
+        if(chk_buttons(0)){
+                button1 = (button1^0x01)&0x01;
+                (incdec_mode = buttons_to_incdec[((button2) | (button1))&0x03]);
+        }
+
+        // The state of button2 is flipped ORd with button1 state and sets incdec mode 
+
+        // Turn off the button board PWM high   
+        PORTB &= ~((1<<PB4) | (1<<PB5) | (1<<PB6) | (0<<PB7));
+
+        DDRA = 0xFF; //DDRA Output
+        PORTA = 0xFF; //Turn Off The 7Seg
+	
+  // Send info to the bargraph (Sending info will read in encoders)
+
+        PORTE &= ~((1<<PE6) | (1<<PE7) | (1<<PE5)); //Encoder Shift Reg Clk en Low, Load Mode
+        PORTE |= (1<<PE7); //Shift Mode
+        encoder = spi_rw8(incdec_to_bargraph[incdec_mode]); // Send SPI_8bit
+
+  // Check the encoders
+        if(encoder != old_encoder){
+                // Change in the encoder position
+                encoders(encoder, old_encoder);
+        }
+  // Return the to original states
+        PORTD |= (1<<PD2); //SS_Bar Low
+        PORTE |= (1<<PE6) | (1<<PE7) | (0<<PE5); //Clk enable high, Shift mode
+        PORTB &= ~((1<<PB4) | (1<<PB5) | (1<<PB6) | (1<<PB7)); // Sel 0
+  // Disable the button board tristates
+
+
+}
+
 
 
 
