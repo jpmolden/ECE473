@@ -153,9 +153,11 @@ while(1){                             //main while loop
         i = 0;
   //send 7 segment code to LED segments
         for(;i<5;i++){
-                PORTA = segment_data[i];
-                PORTB = i<<4; // | 0<<PB7;
-                _delay_ms(0.5);
+                PORTB = i<<4;
+		PORTA = segment_data[i];
+                //PORTB = i<<4; // | 0<<PB7;
+		//_delay_ms(1);
+		PORTA = 0xFF; //Seg Off
         }
 
  } //while(1)
@@ -291,7 +293,7 @@ void init_tcnt2(){
 // External clock and a 128 prescaler. This way every overflow(256) is 1sec
 
   //enable interrupts for output compare match 0
-  TIMSK |= (1<<TOIE2) | (1<<OCIE2);  //TimerOverflow Interrupt Enable
+  TIMSK |= (1<<TOIE2) | (0<<OCIE2);  //TimerOverflow Interrupt Enable
   TCCR2 = (1<<WGM21) | (1<<WGM20) | (1<<COM21) | (1<<COM20) | (0<<CS22) | (1<<CS21) | (1<<CS20);
 	//Fast-PWM mode, Inverting PWM Mode, 64 prescale, OC2(PB7)(PWM) Connected
 	//0-256 takes 1ms (16k CLKIO cycles)
@@ -305,7 +307,7 @@ ISR(TIMER2_OVF_vect){
 	//
 	static uint8_t timer_tick;
 	timer_tick++;
-	if((timer_tick == 250)){
+		if((timer_tick > 10)){
 		timer_tick = 0;
 		disable_timer2();
 		check_user_input();
@@ -321,7 +323,8 @@ ISR(TIMER2_COMP_vect){
 
 
 //***********************************************************************
-//                            timer/counter2_init - PWM Dimming & TOV Butttons                               
+//                            timer/counter2_Disable
+//			      Sets timer Clk to 0           
 //**********************************************************************
 void disable_timer2(){
 // Add HERE
@@ -337,15 +340,19 @@ void disable_timer2(){
 
 
 
-
-
+//***********************************************************************
+//                            Check Buttons/Encoders                         
+//**********************************************************************
 void check_user_input(){
+	//Checks the state of the buttons and encoders
+	//Output
+
   //Read the buttons
         PORTB = PORTB | (1<<PB4) | (1<<PB5) | (1<<PB6) | (1<<PB7);
 
-        DDRA = 0x00; // PortA as an input
-        PORTA = 0xFF; // PortA enable Pull Ups
-
+	DDRA = 0x00; // PortA as an input
+	PORTA = 0xFF; // PortA enable Pull Ups
+	_delay_us(10); 				//Test Wait
         if(chk_buttons(1)){
                 button2 = (button2^0x02)&0x02;
                 (incdec_mode = buttons_to_incdec[((button2) | (button1))&0x03]);
@@ -353,33 +360,36 @@ void check_user_input(){
 
         if(chk_buttons(0)){
                 button1 = (button1^0x01)&0x01;
-                (incdec_mode = buttons_to_incdec[((button2) | (button1))&0x03]);
-        }
+		(incdec_mode = buttons_to_incdec[((button2) | (button1))&0x03]);
+	}
 
-        // The state of button2 is flipped ORd with button1 state and sets incdec mode 
+	// The state of button2 is flipped ORd with button1 state and sets incdec mode 
 
-        // Turn off the button board PWM high   
-        PORTB &= ~((1<<PB4) | (1<<PB5) | (1<<PB6) | (0<<PB7));
+	// Turn off the button board PWM high	
+	PORTB &= ~((1<<PB4) | (1<<PB5) | (1<<PB6) | (0<<PB7));
 
-        DDRA = 0xFF; //DDRA Output
-        PORTA = 0xFF; //Turn Off The 7Seg
+	DDRA = 0xFF; //DDRA Output
+	PORTA = 0xFF; //Turn Off The 7Seg
 	
   // Send info to the bargraph (Sending info will read in encoders)
-
-        PORTE &= ~((1<<PE6) | (1<<PE7) | (1<<PE5)); //Encoder Shift Reg Clk en Low, Load Mode
-        PORTE |= (1<<PE7); //Shift Mode
-        encoder = spi_rw8(incdec_to_bargraph[incdec_mode]); // Send SPI_8bit
-
+	PORTD &= ~(1<<PD2); //Storage Reg for HC595 low
+	PORTE &= ~((1<<PE6) | (1<<PE7) | (1<<PE5)); //Encoder Shift Reg Clk en Low, Load Mode
+	PORTE |= (1<<PE7); //Shift Mode
+	encoder = spi_rw8(incdec_to_bargraph[incdec_mode]); // Send SPI_8bit
+	//spi_rw8(0xF0); 			//Test line
+	
   // Check the encoders
-        if(encoder != old_encoder){
-                // Change in the encoder position
-                encoders(encoder, old_encoder);
-        }
+	if(encoder != old_encoder){
+		// Change in the encoder position
+		encoders(encoder, old_encoder);
+	}	
   // Return the to original states
-        PORTD |= (1<<PD2); //SS_Bar Low
-        PORTE |= (1<<PE6) | (1<<PE7) | (0<<PE5); //Clk enable high, Shift mode
-        PORTB &= ~((1<<PB4) | (1<<PB5) | (1<<PB6) | (1<<PB7)); // Sel 0
+	PORTD |= (1<<PD2); //SS_Bar Low
+	PORTE |= (1<<PE6) | (1<<PE7) | (0<<PE5); //Clk enable high, Shift mode
+	PORTB &= ~((1<<PB4) | (1<<PB5) | (1<<PB6) | (1<<PB7)); // Sel 0
   // Disable the button board tristates
+
+
 
 
 }
