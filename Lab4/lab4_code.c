@@ -82,6 +82,7 @@ uint8_t encoder_lookup[16]={0,2,1,0,1,0,0,2,2,0,0,1,0,1,2,0};
 
 
 volatile uint8_t incdec_mode = 0;
+volatile uint8_t clockmode = Clock_mode;
 volatile uint8_t button1 = 0;
 volatile uint8_t button2 = 0;
 volatile uint8_t encoder = 0;
@@ -108,8 +109,6 @@ volatile uint8_t hours = 11;
 volatile uint8_t mins = 59;
 volatile uint8_t seconds = 0;
 
-volatile uint8_t clockmode = Clock_mode;
-
 
 
 
@@ -118,47 +117,38 @@ volatile uint8_t clockmode = Clock_mode;
 //**********************************************************************
 int main(){
 
-uint8_t i; //dummy counter
+	uint8_t i; //dummy counter
+
+	spi_init();  //initalize SPI port, also initializes DDB
+	init_tcnt0(); // initalize TIMER/COUNTER0 - Real Time Clock
+	init_tcnt1(); // initalize TIMER/COUNTER1 - Alarm Tone PWM
+	init_tcnt2(); // initalize TIMER/COUNTER2 - 7-Seg Brigtness PWM
+	init_tcnt3(); // initalize TIMER/COUNTER3 - Audio Volume PWM
+
+	init_DDRs();
 
 
-
-spi_init();  //initalize SPI port, also initializes DDB
-init_tcnt0(); // initalize TIMER/COUNTER0
-// To Do 
-init_tcnt2();
+	sei(); // enable global interrupts
 
 
+	while(1){                             //main while loop
 
+	// Decode the Display Digits
+	// Send the Digits to the Display
+	  //bound the count to 0 - 1023
 
-// Set the DDR for Ports
-DDRA = DDRA_OUTPUT;
-DDRE = (1<<PE5) | (1<<PE6) | (1<<PE7);
-DDRD = (1<<PD2);
-//incdec_mode = 0x01;
-// Read the starting encoder positions
-//old_encoder = spi_rw8(0x55);
-
-sei(); // enable global interrupts
-
-
-while(1){                             //main while loop
-
-// Decode the Display Digits
-// Send the Digits to the Display
-  //bound the count to 0 - 1023
-		
-  //break up the disp_value to 4, BCD digits in the array: call (segsum)
-        segsum(clockmode);
-  //bound a counter (0-4) to keep track of digit to display 
-        i = 0;
-  //send 7 segment code to LED segments
-        for(;i<5;i++){
-                PORTB = i<<4;
-		PORTA = segment_data[i];
-                //PORTB = i<<4; // | 0<<PB7;
-		//_delay_ms(1);
-		PORTA = 0xFF; //Seg Off
-        }
+	  //break up the disp_value to 4, BCD digits in the array: call (segsum)
+		segsum(clockmode);
+	  //bound a counter (0-4) to keep track of digit to display 
+		i = 0;
+	  //send 7 segment code to LED segments
+		for(;i<5;i++){
+			PORTB = i<<4;
+			PORTA = segment_data[i];
+			//PORTB = i<<4; // | 0<<PB7;
+			//_delay_ms(1);
+			PORTA = 0xFF; //Seg Off
+		}
 
  } //while(1)
 } //main
@@ -180,7 +170,6 @@ void spi_init(){
 //**********************************************************************
 
 
-
 //***********************************************************************
 //                            timer/counter0_init                               
 //**********************************************************************
@@ -198,9 +187,8 @@ void init_tcnt0(){
 //**********************************************************************
 
 
-
 //***********************************************************************
-//                            timer/counter0_init                               
+//                            timer/counter1_init                               
 //**********************************************************************
 void init_tcnt1(){
 // Add HERE
@@ -216,9 +204,8 @@ void init_tcnt1(){
 //**********************************************************************
 
 
-
 //***********************************************************************
-//                            timer/counter2_init - PWM Dimming & TOV Butttons                               
+//                            timer/counter2_init                              
 //**********************************************************************
 void init_tcnt2(){
 // Add HERE
@@ -235,9 +222,8 @@ void init_tcnt2(){
 //**********************************************************************
 
 
-
 //***********************************************************************
-//                            timer/counter0_init                               
+//                            timer/counter3_init                               
 //**********************************************************************
 void init_tcnt3(){
 // Add HERE
@@ -251,6 +237,28 @@ void init_tcnt3(){
   //OCR0  |=  0xFF;                   //compare at 256
 }
 //**********************************************************************
+
+
+
+//***********************************************************************
+//                            timer/counter0_init                               
+//**********************************************************************
+void init_(){
+// Add HERE
+	// Set the DDR for Ports	
+	DDRA = DDRA_OUTPUT; // 7-Seg Data out
+	DDRE = (1<<PE5) | (1<<PE6) | (1<<PE7); // Control for Encoders and Bargraph
+	DDRD = (1<<PD2); // Control for Encoders and Bargraph
+	incdec_mode = 0x01;
+	// Read the starting encoder positions
+	old_encoder = spi_rw8(0x55);
+
+}
+//**********************************************************************
+
+
+
+
 
 
 
