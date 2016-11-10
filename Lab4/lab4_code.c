@@ -636,7 +636,7 @@ void encoders(){
 void check_alarm(){
 	if((alarm_armed == 0x01) & (hours == alarm_hours) & (mins == alarm_mins)){
 		
-
+	}
 			
 
 	
