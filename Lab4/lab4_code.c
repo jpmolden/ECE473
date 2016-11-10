@@ -102,6 +102,13 @@ void check_user_input();
 void encoders(uint8_t encoder_in, uint8_t old_encoder_in);
 void disable_timer2();
 
+void init_tcnt1(); // initalize TIMER/COUNTER1 - Alarm Tone PWM
+void init_tcnt2(); // initalize TIMER/COUNTER2 - 7-Seg Brigtness PWM
+void init_tcnt3(); // initalize TIMER/COUNTER3 - Audio Volume PWM
+
+void init_DDRs();
+
+
 
 
 //Variable Declarations
