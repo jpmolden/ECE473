@@ -34,8 +34,9 @@
 #define DDRA_INPUT 0x00
 
 #define Clock_mode 0
-#define Alarm_set_mode 1
-#define Alarm_buzz_mode 2
+#define Alarm_mode 1
+#define Clock_set_mode 1
+#define Alarm_set_mode 2
 
 
 //holds data to be sent to the segments. logic zero turns segment on
@@ -113,8 +114,12 @@ void init_DDRs();
 
 //Variable Declarations
 volatile uint8_t hours = 11;
-volatile uint8_t mins = 59;
+volatile uint8_t mins = 55;
 volatile uint8_t seconds = 0;
+
+volatile uint8_t alarm_hours = 11;
+volatile uint8_t alarm_mins = 59;
+
 
 
 
@@ -131,12 +136,9 @@ int main(){
 	init_tcnt1(); // initalize TIMER/COUNTER1 - Alarm Tone PWM
 	init_tcnt2(); // initalize TIMER/COUNTER2 - 7-Seg Brigtness PWM
 	init_tcnt3(); // initalize TIMER/COUNTER3 - Audio Volume PWM
-
-	init_DDRs();
-
+	init_DDRs(); // initalize DDRs for the display, encoders bargraph
 
 	sei(); // enable global interrupts
-
 
 	while(1){                             //main while loop
 
@@ -367,18 +369,52 @@ void segsum(uint8_t xmode){
         //if(sum >= 10)(no_digits = 2);
         //if(sum >= 100)(no_digits = 3);
         //if(sum >= 1000)(no_digits = 4);
+	
+	switch(xmode){
+		case Clock_mode:
+		  	//break up decimal sum into 4 digit-segment   
+			//The digits (0-9) are used as the index for the seven segment representation
+			segment_data[0] = dec_to_7seg[(mins/1) %10];
+			segment_data[1] = dec_to_7seg[(mins/10) %10];
+			if((xmode == Clock_mode)){
+				segment_data[2] = dec_to_7seg[11 + (seconds % 2)];
+				//in dec_to_7seg index 11 = OFF, index 12 = Colon
+				// Blinky Colon
+			}
+			segment_data[3] = dec_to_7seg[((hours)/1) %10];
+			segment_data[4] = dec_to_7seg[((hours)/10) %10];
+			break;
+		case Alarm_mode:
+			segment_data[0] = dec_to_7seg[(alarm_mins/1) %10];
+			segment_data[1] = dec_to_7seg[(alarm_mins/10) %10];
+			segment_data[2] = dec_to_7seg[12];
+			//in dec_to_7seg index 11 = OFF, index 12 = Colon
+			segment_data[3] = dec_to_7seg[((alarm_hours)/1) %10];
+			segment_data[4] = dec_to_7seg[((alarm_hours)/10) %10];
+			break;
+		default:
+			//Do nothing
+			break;
+	}
+		
 
+	
   //break up decimal sum into 4 digit-segment   
         //The digits (0-9) are used as the index for the seven segment representation
         segment_data[0] = dec_to_7seg[(mins/1) %10];
         segment_data[1] = dec_to_7seg[(mins/10) %10];
         if((xmode == Clock_mode)){
 		segment_data[2] = dec_to_7seg[10 + (seconds % 2)];
-		//in decto7seg index 11 = OFF, index 12 = Colon
+		//in dec_to_7seg index 11 = OFF, index 12 = Colon
 	}
 	segment_data[3] = dec_to_7seg[((hours)/1) %10];
         segment_data[4] = dec_to_7seg[((hours)/10) %10];
 
+	
+	
+	
+	
+	
   //blank out leading zero digits
        // if(sum < 1000){
                // segment_data[4] = SEG_OFF;
