@@ -101,7 +101,7 @@ void init_tcnt0();
 void init_tcnt2();
 uint16_t hours_mins_to_7segsum(uint8_t xhrs, uint8_t xmins);
 void check_user_input();
-void encoders(uint8_t encoder_in, uint8_t old_encoder_in);
+void encoders();
 void disable_timer2();
 
 void init_tcnt1(); // initalize TIMER/COUNTER1 - Alarm Tone PWM
@@ -495,7 +495,7 @@ void check_user_input(){
   // Check the encoders
 	if(encoder != old_encoder){
 		// Change in the encoder position
-		encoders(encoder, old_encoder);
+		encoders();
 	}	
   // Return the to original states
 	PORTD |= (1<<PD2); //SS_Bar Low
@@ -510,7 +510,7 @@ void check_user_input(){
 //***********************************************************************
 //                            encoder                               
 //**********************************************************************
-void encoders(uint8_t encoder_in, uint8_t old_encoder_in){
+void encoders(){
 	// The direction is determined by a state machine look up table 0=no change
 	// 1=CCW, 2=CW
 	//The old encoder value is place in posistion in b2 b3, 0x03 masks out other 1's	
@@ -572,8 +572,52 @@ void encoders(uint8_t encoder_in, uint8_t old_encoder_in){
 			}
 			break;
 		case Alarm_set_mode:
+			//Check encoder 1
+			direction = encoder_lookup[((old_encoder & 0x03)<<2) | (encoder & 0x03)];
+			switch(direction){
+				case 0:
+					break;
+				case 1:
+					if(alarm_mins > 0){
+						alarm_mins = alarm_mins - 1;
+					}else{
+						alarm_mins = 59;
+					}					
+					break;
+				case 2:
+					if(alarm_mins < 59){
+						alarm_mins = alarm_mins + 1;
+					}else{
+						alarm_mins = 0;
+					}	
+					break;
+				default:
+					break;
+			}
 			
-			
+
+			//Check encoder 2
+			direction = encoder_lookup[(old_encoder & 0x0C) | ((encoder & 0x0C)>>2)];
+			switch(direction){
+				case 0:
+					break;
+				case 1:
+					if(alarm_hours > 0){
+						alarm_hours = alarm_hours - 1;
+					}else{
+						alarm_hours = 23;
+					}					
+					break;
+				case 2:
+					if(alarm_hours < 23){
+						alarm_hours = alarm_hours + 1;
+					}else{
+						alarm_hours = 0;
+					}	
+					break;
+				default:
+					break;
+			}
 			break;
 		default:
 			break;
