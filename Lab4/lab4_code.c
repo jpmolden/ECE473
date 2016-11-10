@@ -377,7 +377,7 @@ void segsum(uint8_t xmode){
 			segment_data[0] = dec_to_7seg[(mins/1) %10];
 			segment_data[1] = dec_to_7seg[(mins/10) %10];
 			if((xmode == Clock_mode)){
-				segment_data[2] = dec_to_7seg[10 + (seconds % 2)] & (~(alarm_armed<<3) | 0xFB);
+				segment_data[2] = 0xF8;//dec_to_7seg[10 + (seconds % 2)] & (~(alarm_armed<<3) | 0xFB);
 				//in dec_to_7seg index 11 = OFF, index 12 = Colon
 				// Blinky Colon
 			}
