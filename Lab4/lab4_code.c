@@ -358,28 +358,6 @@ uint8_t spi_rw8(uint8_t write8){
 
 
 
-//***********************************************************************
-//                            adc_read_16bit                               
-//**********************************************************************
-uint16_t adc_r(){
-// Reads the ADC
-	uint16_t adc_result = 0;
-	ADCSRA |= (1<<ADSC); //poke ADSC and start conversion
-
-	while(bit_is_clear(ADCSRA,ADIF)); //spin while interrupt flag not set
-
-	ADCSRA |= (1<<ADIF); //its done, clear flag by writing a one 
-
-	adc_result = ADC; //read the ADC output as 16 bits
-
-	//return(adc_data);
-}
-//**********************************************************************
-
-
-
-
-
 //******************************************************************************
 //                            chk_buttons                                      
 //Checks the state of the button number passed to it. It shifts in ones till   
