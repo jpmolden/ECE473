@@ -136,6 +136,7 @@ int main(){
 	spi_init();  //initalize SPI port, also initializes DDB
 	init_tcnt0(); // initalize TIMER/COUNTER0 - Real Time Clock
 	init_tcnt1(); // initalize TIMER/COUNTER1 - Alarm Tone PWM
+	disable_tcnt1(); 				//			TEST LINE
 	init_tcnt2(); // initalize TIMER/COUNTER2 - 7-Seg Brigtness PWM
 	init_tcnt3(); // initalize TIMER/COUNTER3 - Audio Volume PWM
 	init_DDRs(); // initalize DDRs for the display, encoders bargraph
@@ -290,6 +291,7 @@ void disable_tcnt1(){
 //
 	//use ICR1 as source for TOP, use clk/0 (No Clock)
 	TCCR1B = (1<<WGM13) | (1<< WGM12) | (0<CS10); 
+	TIMSK &= ~(1<<OCIE1A); //Disable OCR1A Interrupt
 }
 //**********************************************************************
 
