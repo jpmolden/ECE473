@@ -250,7 +250,7 @@ void init_tcnt3(){
 //***********************************************************************
 //                            timer/counter0_init                               
 //**********************************************************************
-void init_(){
+void init_DDRs(){
 // Add HERE
 	// Set the DDR for Ports	
 	DDRA = DDRA_OUTPUT; // 7-Seg Data out
