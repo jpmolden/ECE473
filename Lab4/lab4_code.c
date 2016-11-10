@@ -392,42 +392,43 @@ void segsum(uint8_t xmode){
 			segment_data[3] = dec_to_7seg[((alarm_hours)/1) %10];
 			segment_data[4] = dec_to_7seg[((alarm_hours)/10) %10];
 			break;
+		case Clock_set_mode:
+			if((seconds % 2) == 1){
+				segment_data[0] = dec_to_7seg[(mins/1) %10];
+				segment_data[1] = dec_to_7seg[(mins/10) %10];
+				segment_data[2] = dec_to_7seg[12];
+				//in dec_to_7seg index 11 = OFF, index 12 = Colon
+				// Blinky Colon
+				segment_data[3] = dec_to_7seg[((hours)/1) %10];
+				segment_data[4] = dec_to_7seg[((hours)/10) %10];
+			}else{
+				segment_data[0] = SEG_OFF;
+				segment_data[1] = SEG_OFF;
+				segment_data[2] = SEG_OFF;
+				segment_data[3] = SEG_OFF;
+				segment_data[4] = SEG_OFF;	
+			break;
+		case Alarm_set_mode:
+			if((seconds % 2) == 1){
+				segment_data[0] = dec_to_7seg[(alarm_mins/1) %10];
+				segment_data[1] = dec_to_7seg[(alarm_mins/10) %10];
+				segment_data[2] = dec_to_7seg[12];
+				//in dec_to_7seg index 11 = OFF, index 12 = Colon
+				// Blinky Colon
+				segment_data[3] = dec_to_7seg[((alarm_hours)/1) %10];
+				segment_data[4] = dec_to_7seg[((alarm_hours)/10) %10];
+			}else{
+				segment_data[0] = SEG_OFF;
+				segment_data[1] = SEG_OFF;
+				segment_data[2] = SEG_OFF;
+				segment_data[3] = SEG_OFF;
+				segment_data[4] = SEG_OFF;	
+			break;
+			break;
 		default:
 			//Do nothing
 			break;
 	}
-		
-
-	
-  //break up decimal sum into 4 digit-segment   
-        //The digits (0-9) are used as the index for the seven segment representation
-        segment_data[0] = dec_to_7seg[(mins/1) %10];
-        segment_data[1] = dec_to_7seg[(mins/10) %10];
-        if((xmode == Clock_mode)){
-		segment_data[2] = dec_to_7seg[10 + (seconds % 2)];
-		//in dec_to_7seg index 11 = OFF, index 12 = Colon
-	}
-	segment_data[3] = dec_to_7seg[((hours)/1) %10];
-        segment_data[4] = dec_to_7seg[((hours)/10) %10];
-
-	
-	
-	
-	
-	
-  //blank out leading zero digits
-       // if(sum < 1000){
-               // segment_data[4] = SEG_OFF;
-      //  }
-      //  if(sum < 100){
-                // segment_data[3] = SEG_OFF;
-      //  }
-      //  if(sum < 10){
-               //  segment_data[1] = SEG_OFF;
-      //  }
-      //  if(sum == 0){
-      //           //segment_data[0] = SEG_OFF;
-      //  }
 }//segment_sum
 //***********************************************************************************
 
