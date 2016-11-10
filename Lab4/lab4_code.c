@@ -519,10 +519,10 @@ void encoders(uint8_t encoder_in, uint8_t old_encoder_in){
 	switch(clockmode){
 		case Clock_mode:
 			// Do Nothing
-			break
+			break;
 		case Alarm_mode:
 			// Do Nothing
-			break
+			break;
 		case Clock_set_mode:
 			//Check encoder 1
 			uint8_t direction = encoder_lookup[((old_encoder & 0x03)<<2) | (encoder & 0x03)];
