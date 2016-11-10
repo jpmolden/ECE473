@@ -84,6 +84,7 @@ uint8_t encoder_lookup[16]={0,2,1,0,1,0,0,2,2,0,0,1,0,1,2,0};
 
 volatile uint8_t incdec_mode = 0;
 volatile uint8_t clockmode = Clock_mode;
+volatile uint8_t alarm_armed = 0;
 volatile uint8_t button1 = 0;
 volatile uint8_t button2 = 0;
 volatile uint8_t encoder = 0;
@@ -377,7 +378,7 @@ void segsum(uint8_t xmode){
 			segment_data[0] = dec_to_7seg[(mins/1) %10];
 			segment_data[1] = dec_to_7seg[(mins/10) %10];
 			if((xmode == Clock_mode)){
-				segment_data[2] = dec_to_7seg[11 + (seconds % 2)];
+				segment_data[2] = dec_to_7seg[10 + (seconds % 2)];
 				//in dec_to_7seg index 11 = OFF, index 12 = Colon
 				// Blinky Colon
 			}
@@ -387,7 +388,7 @@ void segsum(uint8_t xmode){
 		case Alarm_mode:
 			segment_data[0] = dec_to_7seg[(alarm_mins/1) %10];
 			segment_data[1] = dec_to_7seg[(alarm_mins/10) %10];
-			segment_data[2] = dec_to_7seg[12];
+			segment_data[2] = dec_to_7seg[11];
 			//in dec_to_7seg index 11 = OFF, index 12 = Colon
 			segment_data[3] = dec_to_7seg[((alarm_hours)/1) %10];
 			segment_data[4] = dec_to_7seg[((alarm_hours)/10) %10];
@@ -396,7 +397,7 @@ void segsum(uint8_t xmode){
 			if((seconds % 2) == 1){
 				segment_data[0] = dec_to_7seg[(mins/1) %10];
 				segment_data[1] = dec_to_7seg[(mins/10) %10];
-				segment_data[2] = dec_to_7seg[12];
+				segment_data[2] = dec_to_7seg[11];
 				//in dec_to_7seg index 11 = OFF, index 12 = Colon
 				// Blinky Colon
 				segment_data[3] = dec_to_7seg[((hours)/1) %10];
@@ -414,7 +415,7 @@ void segsum(uint8_t xmode){
 			if((seconds % 2) == 1){
 				segment_data[0] = dec_to_7seg[(alarm_mins/1) %10];
 				segment_data[1] = dec_to_7seg[(alarm_mins/10) %10];
-				segment_data[2] = dec_to_7seg[12];
+				segment_data[2] = dec_to_7seg[11];
 				//in dec_to_7seg index 11 = OFF, index 12 = Colon
 				// Blinky Colon
 				segment_data[3] = dec_to_7seg[((alarm_hours)/1) %10];
@@ -455,7 +456,8 @@ void check_user_input2(){
 	
 	_delay_us(1); 				//Test Wait
         if(chk_buttons(0)){
-		clockmode ^= 0X01; // Toggle bit 0
+		clockmode = (clockmode ^ 0X01) & 0x01; // Toggle bit 0
+		// Toggles between clock and alarm views
 	}
 	
 	if(chk_buttons(1)){
@@ -469,6 +471,19 @@ void check_user_input2(){
 	if(chk_buttons(3)){
                 volume_down();
         }
+	
+	if(chk_buttons(4)){
+                clockmode = Clock_set_mode
+        }
+		
+	if(chk_buttons(5)){
+                clockmode = Alarm_set_mode
+		alarm_armed ^= 0x01; 
+		// Toggle the arming of the alarm
+        }
+	
+	
+	
 	
 
 	// The state of button2 is flipped ORd with button1 state and sets incdec mode 
