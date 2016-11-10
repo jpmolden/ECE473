@@ -656,7 +656,7 @@ void encoders(){
 //**********************************************************************
 void check_alarm(){
 	if((alarm_armed == 0x01) & (hours == alarm_hours) & (mins == alarm_mins)){
-		init_tcnt1;
+		init_tcnt1();
 	}else{
 		disable_tcnt1();
 	}
