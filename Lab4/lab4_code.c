@@ -81,16 +81,27 @@ uint8_t encoder_lookup[16]={0,2,1,0,1,0,0,2,2,0,0,1,0,1,2,0};
 //uint8_t encoder_lookup[16]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
 
-
+// Mode Variables
 volatile uint8_t incdec_mode = 0;
 volatile uint8_t clockmode = Clock_mode;
 volatile uint8_t alarm_armed = 0;
-volatile uint8_t button1 = 0;
-volatile uint8_t button2 = 0;
+
+//volatile uint8_t button1 = 0;
+//volatile uint8_t button2 = 0;
+
+
+// Current and new encoder states
 volatile uint8_t encoder = 0;
 volatile uint8_t old_encoder = 0;
-volatile uint8_t display_count = 0x00; //holds count for 7seg display 
+//volatile uint8_t display_count = 0x00; //holds count for 7seg display 
 
+
+// Time Variables
+volatile uint8_t hours = 11;
+volatile uint8_t mins = 55;
+volatile uint8_t seconds = 0;
+volatile uint8_t alarm_hours = 11;
+volatile uint8_t alarm_mins = 59;
 
 
 //Function Declarations
@@ -110,17 +121,6 @@ void init_tcnt3(); // initalize TIMER/COUNTER3 - Audio Volume PWM
 
 void init_DDRs();
 void check_alarm(); // Checks to see if the alarm should sound on a min tick
-
-
-
-//Variable Declarations
-volatile uint8_t hours = 11;
-volatile uint8_t mins = 55;
-volatile uint8_t seconds = 0;
-
-volatile uint8_t alarm_hours = 11;
-volatile uint8_t alarm_mins = 59;
-
 
 
 
