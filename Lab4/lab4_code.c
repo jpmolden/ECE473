@@ -325,6 +325,26 @@ uint8_t chk_buttons(uint8_t button) {
 
 
 
+//***********************************************************************
+//                            volume_up                               
+//**********************************************************************
+void volume_up(){
+	// Todo - Change OCR3
+	
+}
+
+
+
+
+//***********************************************************************
+//                            volume_down                               
+//**********************************************************************
+void volume_down(){
+	// Todo - Change OCR3
+	
+}
+
+
 
 
 //***********************************************************************************
@@ -367,6 +387,84 @@ void segsum(uint8_t xmode){
       //  }
 }//segment_sum
 //***********************************************************************************
+
+
+
+
+
+//***********************************************************************
+//                            Check Buttons/Encoders                         
+//**********************************************************************
+void check_user_input2(){
+	//Checks the state of the buttons and encoders
+	//Output
+
+  //Read the buttons
+        PORTB = PORTB | (1<<PB4) | (1<<PB5) | (1<<PB6) | (1<<PB7);
+	// Select 7 - Enable Tristates on Button Board
+
+	DDRA = 0x00; // PortA as an input from buttons
+	PORTA = 0xFF; // PortA enable Pull Ups
+	
+	_delay_us(1); 				//Test Wait
+        if(chk_buttons(0)){
+		clockmode ^= 0X01; // Toggle bit 0
+	}
+	
+	if(chk_buttons(1)){
+		// Add 24-12 hr functionality here
+        }
+	
+	if(chk_buttons(2)){
+                volume_up();
+        }
+		
+	if(chk_buttons(3)){
+                volume_down();
+        }
+	
+
+	// The state of button2 is flipped ORd with button1 state and sets incdec mode 
+
+	// Turn off the button board PWM high	
+	PORTB &= ~((1<<PB4) | (1<<PB5) | (1<<PB6) | (0<<PB7));
+
+	DDRA = 0xFF; //DDRA Output
+	PORTA = 0xFF; //Turn Off The 7Seg
+	
+  // Send info to the bargraph (Sending info will read in encoders)
+	PORTD &= ~(1<<PD2); //Storage Reg for HC595 low
+	PORTE &= ~((1<<PE6) | (1<<PE7) | (1<<PE5)); //Encoder Shift Reg Clk en Low, Load Mode
+	PORTE |= (1<<PE7); //Shift Mode
+	encoder = spi_rw8(incdec_to_bargraph[incdec_mode]); // Send SPI_8bit
+	//spi_rw8(0xF0); 			//Test line
+	
+  // Check the encoders
+	if(encoder != old_encoder){
+		// Change in the encoder position
+		encoders(encoder, old_encoder);
+	}	
+  // Return the to original states
+	PORTD |= (1<<PD2); //SS_Bar Low
+	PORTE |= (1<<PE6) | (1<<PE7) | (0<<PE5); //Clk enable high, Shift mode
+	PORTB &= ~((1<<PB4) | (1<<PB5) | (1<<PB6) | (1<<PB7)); // Sel 0
+  // Disable the button board tristates
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 
