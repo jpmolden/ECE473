@@ -401,6 +401,7 @@ void segsum(uint8_t xmode){
 				// Blinky Colon
 				segment_data[3] = dec_to_7seg[((hours)/1) %10];
 				segment_data[4] = dec_to_7seg[((hours)/10) %10];
+				break;
 			}else{
 				segment_data[0] = SEG_OFF;
 				segment_data[1] = SEG_OFF;
@@ -408,6 +409,7 @@ void segsum(uint8_t xmode){
 				segment_data[3] = SEG_OFF;
 				segment_data[4] = SEG_OFF;	
 			break;
+			}
 		case Alarm_set_mode:
 			if((seconds % 2) == 1){
 				segment_data[0] = dec_to_7seg[(alarm_mins/1) %10];
@@ -417,14 +419,15 @@ void segsum(uint8_t xmode){
 				// Blinky Colon
 				segment_data[3] = dec_to_7seg[((alarm_hours)/1) %10];
 				segment_data[4] = dec_to_7seg[((alarm_hours)/10) %10];
+				break;
 			}else{
 				segment_data[0] = SEG_OFF;
 				segment_data[1] = SEG_OFF;
 				segment_data[2] = SEG_OFF;
 				segment_data[3] = SEG_OFF;
-				segment_data[4] = SEG_OFF;	
-			break;
-			break;
+				segment_data[4] = SEG_OFF;
+				break;
+			}
 		default:
 			//Do nothing
 			break;
