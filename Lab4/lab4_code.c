@@ -718,6 +718,17 @@ void check_alarm(){
 //                            check_ADCs                               
 //**********************************************************************
 void check_ADCs(){
+	// Reads the ADC
+	uint8_t adc_result = 0;
+	ADCSRA |= (1<<ADSC); //poke ADSC and start conversion
+
+	while(bit_is_clear(ADCSRA,ADIF)); //spin while interrupt flag not set
+
+	ADCSRA |= (1<<ADIF); //its done, clear flag by writing a one 
+
+	adc_result = ADCL; //read the ADC output as 16 bits
+	OCR2 = adc_result;
+//return(adc_data);
 	
 }
 //**********************************************************************
