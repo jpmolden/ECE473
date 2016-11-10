@@ -109,7 +109,7 @@ void init_tcnt2(); // initalize TIMER/COUNTER2 - 7-Seg Brigtness PWM
 void init_tcnt3(); // initalize TIMER/COUNTER3 - Audio Volume PWM
 
 void init_DDRs();
-
+void check_alarm(); // Checks to see if the alarm should sound on a min tick
 
 
 
@@ -630,6 +630,15 @@ void encoders(){
 
 
 
+//***********************************************************************
+//                            encoder                               
+//**********************************************************************
+void check_alarm(){
+	
+}
+//**********************************************************************
+
+
 
 
 //***********************************************************************
@@ -642,6 +651,7 @@ ISR(TIMER0_OVF_vect){
 	if((seconds % 60) == 0){
 		mins++;
 		seconds = 0;
+		check_alarm();
 	}
 	if(((mins % 60) == 0) & ((seconds % 60) == 0)){
 		hours++;
@@ -662,9 +672,9 @@ ISR(TIMER2_OVF_vect){
 	timer_tick++;
 		if((timer_tick > 10)){
 		timer_tick = 0;
-		disable_timer2();
 		check_user_input();
-		init_tcnt2();
+		check_ADCs();
+
 	}
 }
 
