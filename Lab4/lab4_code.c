@@ -35,8 +35,8 @@
 
 #define Clock_mode 0
 #define Alarm_mode 1
-#define Clock_set_mode 1
-#define Alarm_set_mode 2
+#define Clock_set_mode 2
+#define Alarm_set_mode 3
 
 
 //holds data to be sent to the segments. logic zero turns segment on
