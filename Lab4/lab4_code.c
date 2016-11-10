@@ -183,7 +183,8 @@ void spi_init(){
 //                            timer/counter0_init                               
 //**********************************************************************
 void init_tcnt0(){
-// Add HERE
+// Triggers a 1 sec TOV Interrupt.
+//
 // Timer counter 0 initializeed to overflow every 1 second using a 32768Hz 
 // External clock and a 128 prescaler. This way every overflow(256) is 1sec
 
@@ -200,15 +201,23 @@ void init_tcnt0(){
 //                            timer/counter1_init                               
 //**********************************************************************
 void init_tcnt1(){
-// Add HERE
-// Timer counter 0 initializeed to overflow every 1 second using a 32768Hz 
-// External clock and a 128 prescaler. This way every overflow(256) is 1sec
+// Annoying Frequency - Alarm
+// 
+// setup TCNT1 in pwm mode 
+// set OC1A (PB5) as pwm output 
+// pwm frequency:  (16,000,000)/(1 * (61440 + 1)) = 260h
+	//fast pwm, OC1A/B/C Disconnected (Used for 7Seg), ICR1 holds TOP 
+	TCCR1A |= (0<<COM1A1) | (0<<COM1A0) | (1<<WGM11);   
+	//use ICR1 as source for TOP, use clk/1
+	TCCR1B |= (1<<WGM13) | (1<< WGM12) | (1<<CS10); 
+	//no forced compare 
+	TCCR1C = 0x00;                                
+	//20% duty cycle, LED is a bit dimmer
+	OCR1A = 0xC000; //set   at 0xC000
+	ICR1  = 0xF000; //clear at 0xF000 
 
-  ASSR  |=  (1<<AS0);                //run off external 32khz osc (TOSC)
-  //enable interrupts for output compare match 0
-  TIMSK |= (1<<TOIE0);  //TimerOverflow Interrupt Enable
-  TCCR0 =  (1<<CS02) | (0<<CS01) | (1<<CS00);  //Normal mode, 128 prescale, OC0 Disconnected
-  //OCR0  |=  0xFF;                   //compare at 256
+	//enable interrupts for output compare match 0
+	TIMSK |= (1<<OCIE1A);  // Timer/Counter1, Output Compare A Match Interrupt Enable
 }
 //**********************************************************************
 
@@ -272,6 +281,16 @@ void init_DDRs(){
 
 
 
+//***********************************************************************
+//                            timer/counter1_init                               
+//**********************************************************************
+void disable_tcnt1(){
+// Stop ingomkiquency - Alarm
+//
+	//use ICR1 as source for TOP, use clk/0 (No Clock)
+	TCCR1B = (1<<WGM13) | (1<< WGM12) | (0<CS10); 
+}
+//**********************************************************************
 
 
 
