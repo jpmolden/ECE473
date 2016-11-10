@@ -108,7 +108,7 @@ volatile uint8_t alarm_mins = 59;
 void spi_init();
 uint8_t spi_rw8(uint8_t write8);
 void segsum(uint8_t xmode);
-void init_tcnt0();
+
 void init_tcnt2();
 uint16_t hours_mins_to_7segsum(uint8_t xhrs, uint8_t xmins);
 void check_user_input();
@@ -119,6 +119,7 @@ void disable_tcnt1();
 void disable_timer2();
 
 // Init Timers
+void init_tcnt0(); // initalize TIMER/COUNTER0 - Real Time Clock
 void init_tcnt1(); // initalize TIMER/COUNTER1 - Alarm Tone PWM
 void init_tcnt2(); // initalize TIMER/COUNTER2 - 7-Seg Brigtness PWM
 void init_tcnt3(); // initalize TIMER/COUNTER3 - Audio Volume PWM
@@ -232,10 +233,8 @@ void init_tcnt1(){
 //**********************************************************************
 void init_tcnt2(){
 // Add HERE
-// Timer counter 0 initializeed to overflow every 1 second using a 32768Hz 
-// External clock and a 128 prescaler. This way every overflow(256) is 1sec
 
-  //enable interrupts for output compare match 0
+  //enable interrupts for Timer/Counter2 overflow
   TIMSK |= (1<<TOIE2) | (0<<OCIE2);  //TimerOverflow Interrupt Enable
   TCCR2 = (1<<WGM21) | (1<<WGM20) | (1<<COM21) | (1<<COM20) | (0<<CS22) | (1<<CS21) | (1<<CS20);
 	//Fast-PWM mode, Inverting PWM Mode, 64 prescale, OC2(PB7)(PWM) Connected
@@ -277,6 +276,26 @@ void init_DDRs(){
 	// Read the starting encoder positions
 	old_encoder = spi_rw8(0x55);
 
+}
+//**********************************************************************
+
+
+
+
+//***********************************************************************
+//                            init_adc                               
+//**********************************************************************
+void init_ADC(){
+// ADC used to read brightness levels using a photoresistor
+	//Initalize ADC and its ports
+	DDRF  &= ~(_BV(DDF7)); //make port F bit 7 is ADC input  
+	PORTF &= ~(_BV(PF7));  //port F bit 7 pullups must be off
+
+	ADMUX = (1<<REFS1) | (1<<MUX0) | (1<<MUX1) | (1<<MUX2); 
+	//single-ended, input PORTF bit 7, right adjusted, 10 bits
+
+	ADCSRA = (1<<ADEN) | (1<<ADPS0) | (1<<ADPS1) | (1<<ADPS2); 
+	//ADC enabled, don't start yet, single shot mode
 }
 //**********************************************************************
 
@@ -335,6 +354,28 @@ uint8_t spi_rw8(uint8_t write8){
 	return(data);
 }
 //**********************************************************************
+
+
+
+
+//***********************************************************************
+//                            adc_read_16bit                               
+//**********************************************************************
+uint16_t adc_r(){
+// Reads the ADC
+	uint16_t adc_result = 0;
+	ADCSRA |= (1<<ADSC); //poke ADSC and start conversion
+
+	while(bit_is_clear(ADCSRA,ADIF)); //spin while interrupt flag not set
+
+	ADCSRA |= (1<<ADIF); //its done, clear flag by writing a one 
+
+	adc_result = ADC; //read the ADC output as 16 bits
+
+	return(adc_data);
+}
+//**********************************************************************
+
 
 
 
