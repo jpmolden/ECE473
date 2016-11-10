@@ -377,7 +377,7 @@ void segsum(uint8_t xmode){
 			segment_data[0] = dec_to_7seg[(mins/1) %10];
 			segment_data[1] = dec_to_7seg[(mins/10) %10];
 			if((xmode == Clock_mode)){
-				segment_data[2] = dec_to_7seg[10 + (seconds % 2)];
+				segment_data[2] = dec_to_7seg[10 + (seconds % 2)] & (~(alarm_armed<<3) | 0xFB);
 				//in dec_to_7seg index 11 = OFF, index 12 = Colon
 				// Blinky Colon
 			}
@@ -387,8 +387,9 @@ void segsum(uint8_t xmode){
 		case Alarm_mode:
 			segment_data[0] = dec_to_7seg[(alarm_mins/1) %10];
 			segment_data[1] = dec_to_7seg[(alarm_mins/10) %10];
-			segment_data[2] = dec_to_7seg[11] & (~alarm_armed | 0xFB);
-			//in dec_to_7seg index 11 = OFF, index 12 = Colon
+			segment_data[2] = dec_to_7seg[11] & (~(alarm_armed<<3) | 0xFB);
+			// in dec_to_7seg index 11 = OFF, index 12 = Colon
+			// Alarm armed bit into same position as L3 on 7Seg
 			segment_data[3] = dec_to_7seg[((alarm_hours)/1) %10];
 			segment_data[4] = dec_to_7seg[((alarm_hours)/10) %10];
 			break;
