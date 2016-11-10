@@ -226,7 +226,7 @@ void init_tcnt2(){
   TCCR2 = (1<<WGM21) | (1<<WGM20) | (1<<COM21) | (1<<COM20) | (0<<CS22) | (1<<CS21) | (1<<CS20);
 	//Fast-PWM mode, Inverting PWM Mode, 64 prescale, OC2(PB7)(PWM) Connected
 	//0-256 takes 1ms (16k CLKIO cycles)
-  OCR2 =  0x10;                   //compare at 128(50%)
+  OCR2 =  0xF0;                   //compare at 128(50%)
 }
 //**********************************************************************
 
