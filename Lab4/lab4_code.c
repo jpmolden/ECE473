@@ -131,6 +131,7 @@ volatile uint8_t alarm_mins = 59;
 int main(){
 
 	uint8_t i; //dummy counter
+	uint8_t j;
 
 	spi_init();  //initalize SPI port, also initializes DDB
 	init_tcnt0(); // initalize TIMER/COUNTER0 - Real Time Clock
@@ -142,23 +143,21 @@ int main(){
 	sei(); // enable global interrupts
 
 	while(1){                             //main while loop
-
-	// Decode the Display Digits
 	// Send the Digits to the Display
-	  //bound the count to 0 - 1023
-
 	  //break up the disp_value to 4, BCD digits in the array: call (segsum)
 		segsum(clockmode);
 	  //bound a counter (0-4) to keep track of digit to display 
 		i = 0;
+		j = 0; //Refresh the seg data less frequently
 	  //send 7 segment code to LED segments
+		for(;j<100;j++){
 		for(;i<5;i++){
-			PORTB = i<<4;
+                	PORTB = i<<4 | 0<<PB7;
 			PORTA = segment_data[i];
-			//PORTB = i<<4; // | 0<<PB7;
-			//_delay_ms(1);
-			PORTA = 0xFF; //Seg Off
+			_delay_ms(0.25);
 		}
+			
+	}// End while
 
  } //while(1)
 } //main
@@ -443,10 +442,9 @@ void segsum(uint8_t xmode){
 //***********************************************************************
 //                            Check Buttons/Encoders                         
 //**********************************************************************
-void check_user_input2(){
+void check_user_input(){
 	//Checks the state of the buttons and encoders
 	//Output
-
   //Read the buttons
         PORTB = PORTB | (1<<PB4) | (1<<PB5) | (1<<PB6) | (1<<PB7);
 	// Select 7 - Enable Tristates on Button Board
@@ -481,13 +479,6 @@ void check_user_input2(){
 		alarm_armed ^= 0x01; 
 		// Toggle the arming of the alarm
         }
-	
-	
-	
-	
-
-	// The state of button2 is flipped ORd with button1 state and sets incdec mode 
-
 	// Turn off the button board PWM high	
 	PORTB &= ~((1<<PB4) | (1<<PB5) | (1<<PB6) | (0<<PB7));
 
@@ -498,7 +489,7 @@ void check_user_input2(){
 	PORTD &= ~(1<<PD2); //Storage Reg for HC595 low
 	PORTE &= ~((1<<PE6) | (1<<PE7) | (1<<PE5)); //Encoder Shift Reg Clk en Low, Load Mode
 	PORTE |= (1<<PE7); //Shift Mode
-	encoder = spi_rw8(incdec_to_bargraph[incdec_mode]); // Send SPI_8bit
+	encoder = spi_rw8(incdec_to_bargraph[clockmode]); // Send SPI_8bit
 	//spi_rw8(0xF0); 			//Test line
 	
   // Check the encoders
@@ -511,78 +502,8 @@ void check_user_input2(){
 	PORTE |= (1<<PE6) | (1<<PE7) | (0<<PE5); //Clk enable high, Shift mode
 	PORTB &= ~((1<<PB4) | (1<<PB5) | (1<<PB6) | (1<<PB7)); // Sel 0
   // Disable the button board tristates
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-//***********************************************************************
-//                            Check Buttons/Encoders                         
-//**********************************************************************
-void check_user_input(){
-	//Checks the state of the buttons and encoders
-	//Output
-
-  //Read the buttons
-        PORTB = PORTB | (1<<PB4) | (1<<PB5) | (1<<PB6) | (1<<PB7);
-
-	DDRA = 0x00; // PortA as an input
-	PORTA = 0xFF; // PortA enable Pull Ups
-	_delay_us(10); 				//Test Wait
-        if(chk_buttons(1)){
-                button2 = (button2^0x02)&0x02;
-                (incdec_mode = buttons_to_incdec[((button2) | (button1))&0x03]);
-        }
-
-        if(chk_buttons(0)){
-                button1 = (button1^0x01)&0x01;
-		(incdec_mode = buttons_to_incdec[((button2) | (button1))&0x03]);
-	}
-
-	// The state of button2 is flipped ORd with button1 state and sets incdec mode 
-
-	// Turn off the button board PWM high	
-	PORTB &= ~((1<<PB4) | (1<<PB5) | (1<<PB6) | (0<<PB7));
-
-	DDRA = 0xFF; //DDRA Output
-	PORTA = 0xFF; //Turn Off The 7Seg
-	
-  // Send info to the bargraph (Sending info will read in encoders)
-	PORTD &= ~(1<<PD2); //Storage Reg for HC595 low
-	PORTE &= ~((1<<PE6) | (1<<PE7) | (1<<PE5)); //Encoder Shift Reg Clk en Low, Load Mode
-	PORTE |= (1<<PE7); //Shift Mode
-	encoder = spi_rw8(incdec_to_bargraph[incdec_mode]); // Send SPI_8bit
-	//spi_rw8(0xF0); 			//Test line
-	
-  // Check the encoders
-	if(encoder != old_encoder){
-		// Change in the encoder position
-		encoders(encoder, old_encoder);
-	}	
-  // Return the to original states
-	PORTD |= (1<<PD2); //SS_Bar Low
-	PORTE |= (1<<PE6) | (1<<PE7) | (0<<PE5); //Clk enable high, Shift mode
-	PORTB &= ~((1<<PB4) | (1<<PB5) | (1<<PB6) | (1<<PB7)); // Sel 0
-  // Disable the button board tristates
-
-
-
-
-}
 
 
 
@@ -594,39 +515,72 @@ void encoders(uint8_t encoder_in, uint8_t old_encoder_in){
 	// 1=CCW, 2=CW
 	//The old encoder value is place in posistion in b2 b3, 0x03 masks out other 1's	
 
-	//Check encoder 1		
-	uint8_t direction = encoder_lookup[((old_encoder & 0x03)<<2) | (encoder & 0x03)];
-	switch(direction){
-		case 0:
-			break;
-		case 1:
-			display_count = display_count - incdec_mode;
-			break;
-		case 2:
-			display_count = display_count + incdec_mode;
-			break;
-		default:
-			display_count = display_count;
-	}
 	
-	//Check encoder 2
-        direction = encoder_lookup[(old_encoder & 0x0C) | ((encoder & 0x0C)>>2)];
-        switch(direction){
-                case 0:
-                        break;
-                case 1:
-                        display_count = display_count - incdec_mode;
-                        break;
-                case 2:
-                        display_count = display_count + incdec_mode;
-                        break;
-                default:
-                        display_count = display_count;
-        }
+	switch(clockmode){
+		case Clock_mode:
+			// Do Nothing
+			break
+		case Alarm_mode:
+			// Do Nothing
+			break
+		case Clock_set_mode:
+			//Check encoder 1
+			uint8_t direction = encoder_lookup[((old_encoder & 0x03)<<2) | (encoder & 0x03)];
+			switch(direction){
+				case 0:
+					break;
+				case 1:
+					if(mins > 0){
+						mins = mins - 1;
+					}else{
+						mins = 59;
+					}					
+					break;
+				case 2:
+					if(mins < 59){
+						mins = mins + 1;
+					}else{
+						mins = 0;
+					}	
+					break;
+				default:
+					break;
+			}
+			
+
+			//Check encoder 2
+			direction = encoder_lookup[(old_encoder & 0x0C) | ((encoder & 0x0C)>>2)];
+			switch(direction){
+				case 0:
+					break;
+				case 1:
+					if(hours > 0){
+						hours = hours - 1;
+					}else{
+						hours = 23;
+					}					
+					break;
+				case 2:
+					if(hours < 23){
+						hours = hours + 1;
+					}else{
+						hours = 0;
+					}	
+					break;
+				default:
+					break;
+			}
+			break;
+		case Alarm_set_mode:
+			
+			
+			break;
+		case default:
+			break;
+	}
 	//Replace the old encoder value
 	old_encoder = encoder;
-	
-}
+}// End encoders
 //**********************************************************************
 
 
