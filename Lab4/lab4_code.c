@@ -515,7 +515,7 @@ void encoders(uint8_t encoder_in, uint8_t old_encoder_in){
 	// 1=CCW, 2=CW
 	//The old encoder value is place in posistion in b2 b3, 0x03 masks out other 1's	
 
-	
+	uint8_t direction = 0;
 	switch(clockmode){
 		case Clock_mode:
 			// Do Nothing
@@ -525,7 +525,7 @@ void encoders(uint8_t encoder_in, uint8_t old_encoder_in){
 			break;
 		case Clock_set_mode:
 			//Check encoder 1
-			uint8_t direction = encoder_lookup[((old_encoder & 0x03)<<2) | (encoder & 0x03)];
+			direction = encoder_lookup[((old_encoder & 0x03)<<2) | (encoder & 0x03)];
 			switch(direction){
 				case 0:
 					break;
