@@ -267,6 +267,7 @@ void init_DDRs(){
 	DDRA = DDRA_OUTPUT; // 7-Seg Data out
 	DDRE = (1<<PE5) | (1<<PE6) | (1<<PE7); // Control for Encoders and Bargraph
 	DDRD = (1<<PD2); // Control for Encoders and Bargraph
+	DDRC = (1<<PC0); // Alarm PWM Tone
 	incdec_mode = 0x01;
 	// Read the starting encoder positions
 	old_encoder = spi_rw8(0x55);
@@ -655,13 +656,10 @@ void encoders(){
 //**********************************************************************
 void check_alarm(){
 	if((alarm_armed == 0x01) & (hours == alarm_hours) & (mins == alarm_mins)){
-		
+		init_tcnt1;
+	}else{
+		disable_tcnt1();
 	}
-			
-
-	
-	
-	
 
 }
 //**********************************************************************
@@ -700,6 +698,21 @@ ISR(TIMER0_OVF_vect){
 		hours = 0;
 	}
 }
+//**********************************************************************
+
+
+
+
+//***********************************************************************
+//                            Timer1_OCR1A_Match                              
+//**********************************************************************
+ISR(TIMER1_COMPA_vect){
+	PORTC ^= (1<<PC0); //Toggle Bit 0
+
+	
+
+}
+//**********************************************************************
 
 
 
