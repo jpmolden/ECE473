@@ -113,8 +113,12 @@ void init_tcnt2();
 uint16_t hours_mins_to_7segsum(uint8_t xhrs, uint8_t xmins);
 void check_user_input();
 void encoders();
+
+// Disable Timers
+void disable_tcnt1();
 void disable_timer2();
 
+// Init Timers
 void init_tcnt1(); // initalize TIMER/COUNTER1 - Alarm Tone PWM
 void init_tcnt2(); // initalize TIMER/COUNTER2 - 7-Seg Brigtness PWM
 void init_tcnt3(); // initalize TIMER/COUNTER3 - Audio Volume PWM
