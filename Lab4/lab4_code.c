@@ -473,11 +473,11 @@ void check_user_input2(){
         }
 	
 	if(chk_buttons(4)){
-                clockmode = Clock_set_mode
+                clockmode = Clock_set_mode;
         }
 		
 	if(chk_buttons(5)){
-                clockmode = Alarm_set_mode
+                clockmode = Alarm_set_mode;
 		alarm_armed ^= 0x01; 
 		// Toggle the arming of the alarm
         }
