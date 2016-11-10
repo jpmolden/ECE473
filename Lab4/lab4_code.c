@@ -372,7 +372,7 @@ uint16_t adc_r(){
 
 	adc_result = ADC; //read the ADC output as 16 bits
 
-	return(adc_data);
+	//return(adc_data);
 }
 //**********************************************************************
 
