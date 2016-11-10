@@ -575,7 +575,7 @@ void encoders(uint8_t encoder_in, uint8_t old_encoder_in){
 			
 			
 			break;
-		case default:
+		default:
 			break;
 	}
 	//Replace the old encoder value
