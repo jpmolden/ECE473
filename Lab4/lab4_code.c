@@ -145,6 +145,7 @@ int main(){
 	init_tcnt2(); // initalize TIMER/COUNTER2 - 7-Seg Brigtness PWM
 	init_tcnt3(); // initalize TIMER/COUNTER3 - Audio Volume PWM
 	init_DDRs(); // initalize DDRs for the display, encoders bargraph
+	init_ADC();
 
 	sei(); // enable global interrupts
 
