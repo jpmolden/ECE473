@@ -125,6 +125,7 @@ void init_tcnt2(); // initalize TIMER/COUNTER2 - 7-Seg Brigtness PWM
 void init_tcnt3(); // initalize TIMER/COUNTER3 - Audio Volume PWM
 
 void init_DDRs();
+void init_ADC();
 void check_alarm(); // Checks to see if the alarm should sound on a min tick
 void check_ADCs(); // Checks the ADCs and changes the PWM cycle for brightness
 
