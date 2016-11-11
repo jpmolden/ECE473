@@ -297,7 +297,7 @@ void init_ADC(){
 	//ADMUX = (1<<MUX0) | (1<<MUX1) | (1<<MUX2)
 	//single-ended, input PORTF bit 7, right adjusted, 10 bits
 
-	ADCSRA = (1<<ADEN) | (1<<ADPS0) | (1<<ADPS1) | (1<<ADPS2); 
+	ADCSRA = (1<<ADLAR) | (1<<ADEN) | (1<<ADPS0) | (1<<ADPS1) | (1<<ADPS2); 
 	//ADC enabled, don't start yet, single shot mode
 }
 //**********************************************************************
@@ -707,7 +707,7 @@ void check_ADCs(){
 
 	ADCSRA |= (1<<ADIF); //its done, clear flag by writing a one 
 
-	adc_result = ADC; //read the ADC output as 16 bits
+	adc_result = ADCH; //read the ADC output as 16 bits
 	OCR2 = adc_result; //0x10; //adc_result; //adc_result;
 //return(adc_data);
 	
