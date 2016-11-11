@@ -9,7 +9,7 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include "hd44780.h"
+#include "hd44780.c"
 
 
 //  HARDWARE SETUP:
