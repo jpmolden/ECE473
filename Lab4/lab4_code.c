@@ -291,7 +291,8 @@ void init_ADC(){
 	DDRF  &= ~(_BV(DDF7)); //make port F bit 7 is ADC input  
 	PORTF &= ~(_BV(PF7));  //port F bit 7 pullups must be off
 
-	ADMUX = (1<<REFS1) | (1<<MUX0) | (1<<MUX1) | (1<<MUX2); 
+	ADMUX = (1<<REFS0) | (1<<MUX0) | (1<<MUX1) | (1<<MUX2);
+	//ADMUX = (1<<MUX0) | (1<<MUX1) | (1<<MUX2)
 	//single-ended, input PORTF bit 7, right adjusted, 10 bits
 
 	ADCSRA = (1<<ADEN) | (1<<ADPS0) | (1<<ADPS1) | (1<<ADPS2); 
