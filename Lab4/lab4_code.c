@@ -83,6 +83,7 @@ uint8_t buttons_to_incdec[4]={
 // State machine look up table
 uint8_t encoder_lookup[16]={0,2,1,0,1,0,0,2,2,0,0,1,0,1,2,0};
 //uint8_t encoder_lookup[16]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+uint8_t alarm_msg[16] = {'A', 'L', 'A', 'R', 'M', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '};
 
 
 // Mode Variables
