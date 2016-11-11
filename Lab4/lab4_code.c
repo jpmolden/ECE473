@@ -7,6 +7,10 @@
 #include <util/delay.h>
 #include <avr/interrupt.h>
 
+#include <string.h>
+#include <stdlib.h>
+#include "hd44780.h"
+
 
 //  HARDWARE SETUP:
 //  PORTA is connected to the segments of the LED display. and to the pushbuttons.
@@ -147,6 +151,9 @@ int main(){
 	init_tcnt3(); // initalize TIMER/COUNTER3 - Audio Volume PWM
 	init_DDRs(); // initalize DDRs for the display, encoders bargraph
 	init_ADC();
+	lcd_init(); // initialize the lcd screen
+	string2lcd(alarm_msg); // sent msg
+	send_lcd(0x00, 0x08); // turn diplay off
 
 	sei(); // enable global interrupts
 
@@ -685,8 +692,10 @@ void encoders(){
 void check_alarm(){
 	if((alarm_armed == 0x01) && (hours == alarm_hours) && (mins == alarm_mins)){
 		init_tcnt1();
+		send_lcd(0x00, 0x0C);
 	}else{
 		disable_tcnt1();
+		send_lcd(0x00, 0x08);
 	}
 
 }
