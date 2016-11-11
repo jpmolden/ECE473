@@ -764,7 +764,7 @@ ISR(TIMER2_OVF_vect){
 		if((timer_tick > 10)){
 		timer_tick = 0;
 		check_user_input();
-		//check_ADCs();
+		check_ADCs();
 
 	}
 }
