@@ -708,7 +708,7 @@ void check_ADCs(){
 	ADCSRA |= (1<<ADIF); //its done, clear flag by writing a one 
 
 	adc_result = ADCL; //read the ADC output as 16 bits
-	OCR2 = 0x10; //adc_result; //adc_result;
+	OCR2 = adc_result; //0x10; //adc_result; //adc_result;
 //return(adc_data);
 	
 }
