@@ -260,7 +260,7 @@ void init_tcnt2(){
 void init_tcnt3(){
 // Volume PWM	
 // setup TCNT3 in pwm mode 
-	TCCR3A |= (1<<COM3A1) | (0<<COM3A0) | (0<<WGM31) | (1<<WGM31);
+	TCCR3A |= (1<<COM3A1) | (0<<COM3A0) | (0<<WGM31) | (1<<WGM30);
 	// Fast PWM, 8-Bit mode top 0x00FF
 	// Clear OC3A on compare match, Fast PWM (non-inverting)
 	//use ICR1 as source for TOP, use clk/1
