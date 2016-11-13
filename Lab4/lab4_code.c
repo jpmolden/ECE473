@@ -734,10 +734,11 @@ ISR(TIMER0_OVF_vect){
 	//This intterupt should occur every second
 	//static uint8_t seconds = 0; //Holds the seconds between interupts
 	seconds++;
+	check_alarm();
 	if((seconds % 60) == 0){
 		mins++;
 		seconds = 0;
-		check_alarm();
+		//check_alarm();
 	}
 	if(((mins % 60) == 0) & ((seconds % 60) == 0)){
 		hours++;
