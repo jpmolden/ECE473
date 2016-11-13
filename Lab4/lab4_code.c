@@ -106,7 +106,7 @@ volatile uint8_t hours = 11;
 volatile uint8_t mins = 55;
 volatile uint8_t seconds = 0;
 volatile uint8_t alarm_hours = 11;
-volatile uint8_t alarm_mins = 59;
+volatile uint8_t alarm_mins = 56;
 
 
 //Function Declarations
