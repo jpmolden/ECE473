@@ -757,7 +757,7 @@ ISR(TIMER0_OVF_vect){
 //**********************************************************************
 ISR(TIMER1_COMPA_vect){
 	// Port C must be used for Alarm PWM as OCR1X is used for 7Seg
-	PORTC ^= 0X0F; //Toggle Bit 0
+	PORTC ^= 0X03; //Toggle Bit 0 & 1
 
 }
 //**********************************************************************
