@@ -283,7 +283,8 @@ void init_DDRs(){
 // Add HERE
 	// Set the DDR for Ports	
 	DDRA = DDRA_OUTPUT; // 7-Seg Data out
-	DDRE = (1<<PE5) | (1<<PE6) | (1<<PE7); // Control for Encoders and Bargraph
+	DDRE = (1<<PE3) | (1<<PE5) | (1<<PE6) | (1<<PE7); 
+	// Control for Encoders and Bargraph & Volume PWM
 	DDRD = (1<<PD2); // Control for Encoders and Bargraph
 	DDRC = (1<<PC0) | (1<<PC1); // Alarm PWM Tone
 	incdec_mode = 0x01;
