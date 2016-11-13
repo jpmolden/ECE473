@@ -89,7 +89,7 @@ uint8_t alarm_msg[16] = {'A', 'L', 'A', 'R', 'M', ' ', ' ', ' ', ' ', ' ', ' ', 
 // Mode Variables
 volatile uint8_t incdec_mode = 0;
 volatile uint8_t clockmode = Clock_mode;
-volatile uint8_t alarm_armed = 0;
+volatile uint8_t alarm_armed = 1;
 
 //volatile uint8_t button1 = 0;
 //volatile uint8_t button2 = 0;
@@ -104,7 +104,7 @@ volatile uint8_t old_encoder = 0;
 // Time Variables
 volatile uint8_t hours = 11;
 volatile uint8_t mins = 55;
-volatile uint8_t seconds = 0;
+volatile uint8_t seconds = 40;
 volatile uint8_t alarm_hours = 11;
 volatile uint8_t alarm_mins = 56;
 
