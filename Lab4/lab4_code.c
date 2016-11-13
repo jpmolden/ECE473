@@ -145,11 +145,11 @@ int main(){
 	uint8_t j;
 
 	spi_init();  //initalize SPI port, also initializes DDB
-	init_tcnt0(); // initalize TIMER/COUNTER0 - Real Time Clock
-	init_tcnt1(); // initalize TIMER/COUNTER1 - Alarm Tone PWM
-	disable_tcnt1(); 				//			TEST LINE
-	init_tcnt2(); // initalize TIMER/COUNTER2 - 7-Seg Brigtness PWM
-	init_tcnt3(); // initalize TIMER/COUNTER3 - Audio Volume PWM
+	init_tcnt0(); // initalize TIMER/COUNTER0 - Real Time Clock 8-Bit
+	init_tcnt1(); // initalize TIMER/COUNTER1 - Alarm Tone PWM 16-Bit
+	disable_tcnt1(); // stop the clock
+	init_tcnt2(); // initalize TIMER/COUNTER2 - 7-Seg Brigtness PWM 8-bit
+	init_tcnt3(); // initalize TIMER/COUNTER3 - Audio Volume PWM 16-bit
 	init_DDRs(); // initalize DDRs for the display, encoders bargraph
 	init_ADC();
 	lcd_init(); // initialize the lcd screen
@@ -242,7 +242,7 @@ void init_tcnt1(){
 //                            timer/counter2_init                              
 //**********************************************************************
 void init_tcnt2(){
-// Add HERE
+// 7-Seg Brigtness PWM
 
   //enable interrupts for Timer/Counter2 overflow
   TIMSK |= (1<<TOIE2) | (0<<OCIE2);  //TimerOverflow Interrupt Enable
@@ -258,15 +258,19 @@ void init_tcnt2(){
 //                            timer/counter3_init                               
 //**********************************************************************
 void init_tcnt3(){
-// Add HERE
-// Timer counter 0 initializeed to overflow every 1 second using a 32768Hz 
-// External clock and a 128 prescaler. This way every overflow(256) is 1sec
+// Volume PWM	
+// setup TCNT3 in pwm mode 
+	TCCR3A |= (1<<COM3A1) | (0<<COM3A0) | (0<<WGM31) | (1<<WGM31);
+	// Fast PWM, 8-Bit mode top 0x00FF
+	// Clear OC3A on compare match, Fast PWM (non-inverting)
+	//use ICR1 as source for TOP, use clk/1
+	TCCR1B |= (0<<WGM33) | (1<< WGM32) | (1<<CS30);
+	// No prescaling
+	//no forced compare 
+	TCCR1C = 0x00;                                
+	//20% duty cycle, LED is a bit dimmer
+	OCR3A = 0x0080; // Initally at 50% Duty Cycle
 
-  ASSR  |=  (1<<AS0);                //run off external 32khz osc (TOSC)
-  //enable interrupts for output compare match 0
-  TIMSK |= (1<<TOIE0);  //TimerOverflow Interrupt Enable
-  TCCR0 =  (1<<CS02) | (0<<CS01) | (1<<CS00);  //Normal mode, 128 prescale, OC0 Disconnected
-  //OCR0  |=  0xFF;                   //compare at 256
 }
 //**********************************************************************
 
