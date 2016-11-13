@@ -264,10 +264,10 @@ void init_tcnt3(){
 	// Fast PWM, 8-Bit mode top 0x00FF
 	// Clear OC3A on compare match, Fast PWM (non-inverting)
 	//use ICR1 as source for TOP, use clk/1
-	TCCR1B |= (0<<WGM33) | (1<< WGM32) | (1<<CS30);
+	TCCR3B |= (0<<WGM33) | (1<< WGM32) | (1<<CS30);
 	// No prescaling
 	//no forced compare 
-	TCCR1C = 0x00;                                
+	TCCR3C = 0x00;                                
 	//20% duty cycle, LED is a bit dimmer
 	OCR3A = 0x0080; // Initally at 50% Duty Cycle
 
