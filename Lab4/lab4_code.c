@@ -107,7 +107,7 @@ volatile uint8_t mins = 55;
 volatile uint8_t seconds = 40;
 volatile uint8_t alarm_hours = 11;
 volatile uint8_t alarm_mins = 56;
-volatile uint8_t alarm_seconds = 0
+volatile uint8_t alarm_seconds = 0;
 
 
 //Function Declarations
@@ -725,7 +725,7 @@ void snooze(){
 		
 		if(alarm_seconds < 50){
 			alarm_seconds = alarm_seconds + 10;
-			return();
+			return(void);
 		}else{
 			alarm_seconds = 60-alarm_seconds;
 			alarm_mins++;
