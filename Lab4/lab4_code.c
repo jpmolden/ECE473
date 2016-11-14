@@ -700,9 +700,11 @@ void encoders(){
 //                            check_alarm                               
 //**********************************************************************
 void check_alarm(){
-	if((alarm_armed == 0x01) && (hours == alarm_hours) && (mins == alarm_mins)(seconds == alarm_seconds)){
-		init_tcnt1();
-		send_lcd(0x00, 0x0C);
+	if((alarm_armed == 0x01) && (hours == alarm_hours) && (mins == alarm_mins)){
+		if((seconds == alarm_seconds)){	
+			init_tcnt1();
+			send_lcd(0x00, 0x0C);
+		}
 	}
 	
 	// Keeps alarm on while the alarm is armed
