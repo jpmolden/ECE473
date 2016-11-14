@@ -729,6 +729,10 @@ void check_alarm(){
 //                            snooze_alarm                               
 //**********************************************************************
 void snooze(){
+	//Turn off the alarm
+	disable_tcnt1();
+	alarm_buzz = 0x00;
+	
 	if(alarm_seconds < 50){
 		alarm_hours = hours;
 		alarm_mins = mins;
