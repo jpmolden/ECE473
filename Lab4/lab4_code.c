@@ -543,7 +543,8 @@ void check_user_input(){
 		
 	if(chk_buttons(5)){
                 clockmode = Alarm_set_mode;
-		alarm_armed ^= 0x01; 
+		alarm_armed ^= 0x01;
+		alarm_seconds = 0;
 		// Toggle the arming of the alarm
         }
 	
