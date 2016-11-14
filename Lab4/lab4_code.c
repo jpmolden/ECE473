@@ -107,6 +107,7 @@ volatile uint8_t mins = 55;
 volatile uint8_t seconds = 40;
 volatile uint8_t alarm_hours = 11;
 volatile uint8_t alarm_mins = 56;
+volatile uint8_t alarm_seconds = 0
 
 
 //Function Declarations
@@ -132,6 +133,7 @@ void init_tcnt3(); // initalize TIMER/COUNTER3 - Audio Volume PWM
 void init_DDRs();
 void init_ADC();
 void check_alarm(); // Checks to see if the alarm should sound on a min tick
+void snooze(); // Adds 10 second to alarm upto 50 seconds
 void check_ADCs(); // Checks the ADCs and changes the PWM cycle for brightness
 
 
@@ -168,10 +170,11 @@ int main(){
 	  //send 7 segment code to LED segments
 		for(;j<100;j++){
 		for(;i<5;i++){
-                	PORTB = i<<4 | 0<<PB7;
-			PORTA = segment_data[i];
-			_delay_us(10);
-			PORTA = 0XFF; //Seg off
+                	PORTB = i<<4 | 0<<PB7; // Select a segment
+			PORTA = segment_data[i]; // Send data to the segment
+			_delay_us(10); // Hold
+			PORTA = 0XFF; //Seg off to reduce flicker
+			_delay_us(1); // Hold
 		}
 			
 	}// End while
@@ -697,17 +700,44 @@ void encoders(){
 //                            check_alarm                               
 //**********************************************************************
 void check_alarm(){
-	if((alarm_armed == 0x01) && (hours == alarm_hours) && (mins == alarm_mins)){
+	if((alarm_armed == 0x01) && (hours == alarm_hours) && (mins == alarm_mins) && (seconds == alarm_seconds)){
 		init_tcnt1();
 		send_lcd(0x00, 0x0C);
-	}else{
-		disable_tcnt1();
-		send_lcd(0x00, 0x08);
 	}
-
+	
+	// Keeps alarm on while the alarm is armed
+	if((alarm_armed == 0x00)){
+		disable_tcnt1();
+		send_lcd(0x00, 0x0C);
+	}
 }
 //**********************************************************************
 
+
+//***********************************************************************
+//                            snooze_alarm                               
+//**********************************************************************
+void snooze(){
+	if(alarm_seconds < 50){
+		alarm_hours = hours;
+		alarm_mins = mins;
+		alarm_seconds  = seconds;
+		
+		if(alarm_seconds < 50){
+			alarm_seconds = alarm_seconds + 10;
+			return();
+		}else{
+			alarm_seconds = 60-alarm_seconds;
+			alarm_mins++;
+		}
+		
+		if(alarm_mins > 59){
+			alarm_mins = 0;
+			alarm_hours++;
+		}
+	}
+}
+//**********************************************************************
 
 
 
