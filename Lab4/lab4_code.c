@@ -171,6 +171,7 @@ int main(){
                 	PORTB = i<<4 | 0<<PB7;
 			PORTA = segment_data[i];
 			_delay_us(10);
+			PORTA = 0XFF; //Seg off
 		}
 			
 	}// End while
