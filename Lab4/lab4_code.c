@@ -108,6 +108,7 @@ volatile uint8_t seconds = 40;
 volatile uint8_t alarm_hours = 11;
 volatile uint8_t alarm_mins = 56;
 volatile uint8_t alarm_seconds = 0;
+volatile uint8_t alarm_buzz = 0;
 
 
 //Function Declarations
@@ -545,6 +546,12 @@ void check_user_input(){
 		alarm_armed ^= 0x01; 
 		// Toggle the arming of the alarm
         }
+	
+	if(chk_buttons(6)){
+                if(alarm_buzz = 0x01){
+			snooze();
+		}
+        }
 	// Turn off the button board PWM high	
 	PORTB &= ~((1<<PB4) | (1<<PB5) | (1<<PB6) | (0<<PB7));
 
@@ -703,6 +710,7 @@ void check_alarm(){
 	if((alarm_armed == 0x01) && (hours == alarm_hours) && (mins == alarm_mins)){
 		if((seconds == alarm_seconds)){	
 			init_tcnt1();
+			alarm_buzz = 0x01;
 			send_lcd(0x00, 0x0C);
 		}
 	}
@@ -710,6 +718,7 @@ void check_alarm(){
 	// Keeps alarm on while the alarm is armed
 	if((alarm_armed == 0x00)){
 		disable_tcnt1();
+		alarm_buzz = 0x00;
 		send_lcd(0x00, 0x0C);
 	}
 }
