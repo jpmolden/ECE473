@@ -725,7 +725,7 @@ void snooze(){
 		
 		if(alarm_seconds < 50){
 			alarm_seconds = alarm_seconds + 10;
-			return(void);
+			return;
 		}else{
 			alarm_seconds = 60-alarm_seconds;
 			alarm_mins++;
