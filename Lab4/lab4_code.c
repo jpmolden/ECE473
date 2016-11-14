@@ -170,7 +170,7 @@ int main(){
 		for(;i<5;i++){
                 	PORTB = i<<4 | 0<<PB7;
 			PORTA = segment_data[i];
-			_delay_ms(0.25);
+			_delay_ms(0.5);
 		}
 			
 	}// End while
