@@ -700,7 +700,7 @@ void encoders(){
 //                            check_alarm                               
 //**********************************************************************
 void check_alarm(){
-	if((alarm_armed == 0x01) && (hours == alarm_hours) && (mins == alarm_mins)){
+	if((alarm_armed == 0x01) && (hours == alarm_hours) && (mins == alarm_mins)(seconds == alarm_seconds)){
 		init_tcnt1();
 		send_lcd(0x00, 0x0C);
 	}
@@ -769,8 +769,8 @@ void check_ADCs(){
 ISR(TIMER0_OVF_vect){
 	//This intterupt should occur every second
 	//static uint8_t seconds = 0; //Holds the seconds between interupts
-	seconds++;
 	check_alarm();
+	seconds++;
 	if((seconds % 60) == 0){
 		mins++;
 		seconds = 0;
