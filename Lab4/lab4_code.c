@@ -700,7 +700,7 @@ void encoders(){
 //                            check_alarm                               
 //**********************************************************************
 void check_alarm(){
-	if((alarm_armed == 0x01) && (hours == alarm_hours) && (mins == alarm_mins) && (seconds == alarm_seconds)){
+	if((alarm_armed == 0x01) && (hours == alarm_hours) && (mins == alarm_mins)){
 		init_tcnt1();
 		send_lcd(0x00, 0x0C);
 	}
