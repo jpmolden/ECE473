@@ -269,7 +269,7 @@ void init_tcnt3(){
 	//no forced compare 
 	TCCR3C = 0x00;                                
 	//20% duty cycle, LED is a bit dimmer
-	OCR3A = 0x0080; // Initally at 50% Duty Cycle
+	OCR3A = 0x00CD; // Initally at 50% Duty Cycle
 
 }
 //**********************************************************************
