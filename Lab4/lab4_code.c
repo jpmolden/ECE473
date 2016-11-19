@@ -10,7 +10,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "hd44780.c"
-
+// Test line for Windows Git blaag
 
 //  HARDWARE SETUP:
 //  PORTA is connected to the segments of the LED display. and to the pushbuttons.
@@ -24,9 +24,9 @@
 //  PORTE.5 = Bar graph ~OE, PORTE.6 = Encoder SR ~SCLK_enable
 //  PORTE.6 = Encoder SR Shift/~Load
 
-// 
+//
 
-//#define F_CPU 16000000 // cpu speed in hertz 
+//#define F_CPU 16000000 // cpu speed in hertz
 #define TRUE 1
 #define FALSE 0
 
@@ -57,7 +57,7 @@ uint8_t dec_to_7seg[12]={
         0x82,   //6
         0xF8,   //7
         0x80,   //8
-        0x98,   //9 
+        0x98,   //9
         0xFF,   //OFF
         0xFC,   //Colon
 	};
@@ -98,7 +98,7 @@ volatile uint8_t alarm_armed = 1;
 // Current and new encoder states
 volatile uint8_t encoder = 0;
 volatile uint8_t old_encoder = 0;
-//volatile uint8_t display_count = 0x00; //holds count for 7seg display 
+//volatile uint8_t display_count = 0x00; //holds count for 7seg display
 
 
 // Time Variables
@@ -140,7 +140,7 @@ void check_ADCs(); // Checks the ADCs and changes the PWM cycle for brightness
 
 
 //***********************************************************************
-//                            main                               
+//                            main
 //**********************************************************************
 int main(){
 
@@ -165,7 +165,7 @@ int main(){
 	// Send the Digits to the Display
 	  //break up the disp_value to 4, BCD digits in the array: call (segsum)
 		segsum(clockmode);
-	  //bound a counter (0-4) to keep track of digit to display 
+	  //bound a counter (0-4) to keep track of digit to display
 		i = 0;
 		j = 0; //Refresh the seg data less frequently
 	  //send 7 segment code to LED segments
@@ -177,7 +177,7 @@ int main(){
 			PORTA = 0XFF; //Seg off to reduce flicker
 			_delay_us(1); // Hold
 		}
-			
+
 	}// End while
 
  } //while(1)
@@ -188,7 +188,7 @@ int main(){
 
 
 //***********************************************************************
-//                            spi_init                               
+//                            spi_init
 //**********************************************************************
 void spi_init(){
   DDRB   = 0xF7; //output mode for SS, MOSI, SCLK & Pins 4-7 (7Seg & Bar Graph)
@@ -201,12 +201,12 @@ void spi_init(){
 
 
 //***********************************************************************
-//                            timer/counter0_init                               
+//                            timer/counter0_init
 //**********************************************************************
 void init_tcnt0(){
 // Triggers a 1 sec TOV Interrupt.
 //
-// Timer counter 0 initializeed to overflow every 1 second using a 32768Hz 
+// Timer counter 0 initializeed to overflow every 1 second using a 32768Hz
 // External clock and a 128 prescaler. This way every overflow(256) is 1sec
 
   ASSR  |=  (1<<AS0);                //run off external 32khz osc (TOSC)
@@ -219,23 +219,23 @@ void init_tcnt0(){
 
 
 //***********************************************************************
-//                            timer/counter1_init                               
+//                            timer/counter1_init
 //**********************************************************************
 void init_tcnt1(){
 // Annoying Frequency - Alarm
-// 
-// setup TCNT1 in pwm mode 
-// set OC1A (PB5) as pwm output 
+//
+// setup TCNT1 in pwm mode
+// set OC1A (PB5) as pwm output
 // pwm frequency:  (16,000,000)/(1 * (61440 + 1)) = 260h
-	//fast pwm, OC1A/B/C Disconnected (Used for 7Seg), ICR1 holds TOP 
-	TCCR1A |= (0<<COM1A1) | (0<<COM1A0) | (1<<WGM11);   
+	//fast pwm, OC1A/B/C Disconnected (Used for 7Seg), ICR1 holds TOP
+	TCCR1A |= (0<<COM1A1) | (0<<COM1A0) | (1<<WGM11);
 	//use ICR1 as source for TOP, use clk/1
-	TCCR1B |= (1<<WGM13) | (1<< WGM12) | (1<<CS10); 
-	//no forced compare 
-	TCCR1C = 0x00;                                
+	TCCR1B |= (1<<WGM13) | (1<< WGM12) | (1<<CS10);
+	//no forced compare
+	TCCR1C = 0x00;
 	//20% duty cycle, LED is a bit dimmer
 	OCR1A = 0xC000; //set   at 0xC000
-	ICR1  = 0xF000; //clear at 0xF000 
+	ICR1  = 0xF000; //clear at 0xF000
 
 	//enable interrupts for output compare match 0
 	TIMSK |= (1<<OCIE1A);  // Timer/Counter1, Output Compare A Match Interrupt Enable
@@ -244,7 +244,7 @@ void init_tcnt1(){
 
 
 //***********************************************************************
-//                            timer/counter2_init                              
+//                            timer/counter2_init
 //**********************************************************************
 void init_tcnt2(){
 // 7-Seg Brigtness PWM
@@ -260,19 +260,19 @@ void init_tcnt2(){
 
 
 //***********************************************************************
-//                            timer/counter3_init                               
+//                            timer/counter3_init
 //**********************************************************************
 void init_tcnt3(){
-// Volume PWM	
-// setup TCNT3 in pwm mode 
+// Volume PWM
+// setup TCNT3 in pwm mode
 	TCCR3A |= (1<<COM3A1) | (0<<COM3A0) | (0<<WGM31) | (1<<WGM30);
 	// Fast PWM, 8-Bit mode top 0x00FF
 	// Clear OC3A on compare match, Fast PWM (non-inverting)
 	//use ICR1 as source for TOP, use clk/1
 	TCCR3B |= (0<<WGM33) | (1<< WGM32) | (1<<CS30);
 	// No prescaling
-	//no forced compare 
-	TCCR3C = 0x00;                                
+	//no forced compare
+	TCCR3C = 0x00;
 	//20% duty cycle, LED is a bit dimmer
 	OCR3A = 0x00CD; // Initally at 50% Duty Cycle
 
@@ -282,13 +282,13 @@ void init_tcnt3(){
 
 
 //***********************************************************************
-//                            timer/counter0_init                               
+//                            timer/counter0_init
 //**********************************************************************
 void init_DDRs(){
 // Add HERE
-	// Set the DDR for Ports	
+	// Set the DDR for Ports
 	DDRA = DDRA_OUTPUT; // 7-Seg Data out
-	DDRE = (1<<PE3) | (1<<PE5) | (1<<PE6) | (1<<PE7); 
+	DDRE = (1<<PE3) | (1<<PE5) | (1<<PE6) | (1<<PE7);
 	// Control for Encoders and Bargraph & Volume PWM
 	DDRD = (1<<PD2); // Control for Encoders and Bargraph
 	DDRC = (1<<PC0) | (1<<PC1); // Alarm PWM Tone
@@ -303,19 +303,19 @@ void init_DDRs(){
 
 
 //***********************************************************************
-//                            init_adc                               
+//                            init_adc
 //**********************************************************************
 void init_ADC(){
 // ADC used to read brightness levels using a photoresistor
 	//Initalize ADC and its ports
-	DDRF  &= ~(_BV(DDF7)); //make port F bit 7 is ADC input  
+	DDRF  &= ~(_BV(DDF7)); //make port F bit 7 is ADC input
 	PORTF &= ~(_BV(PF7));  //port F bit 7 pullups must be off
 
 	ADMUX = (1<<ADLAR) | (1<<REFS0) | (1<<MUX0) | (1<<MUX1) | (1<<MUX2);
 	//ADMUX = (1<<MUX0) | (1<<MUX1) | (1<<MUX2)
 	//single-ended, input PORTF bit 7, right adjusted, 10 bits
 
-	ADCSRA = (1<<ADEN) | (1<<ADPS0) | (1<<ADPS1) | (1<<ADPS2); 
+	ADCSRA = (1<<ADEN) | (1<<ADPS0) | (1<<ADPS1) | (1<<ADPS2);
 	//ADC enabled, don't start yet, single shot mode
 }
 //**********************************************************************
@@ -328,13 +328,13 @@ void init_ADC(){
 
 
 //***********************************************************************
-//                            timer/counter1_init                               
+//                            timer/counter1_init
 //**********************************************************************
 void disable_tcnt1(){
 // Stop ingomkiquency - Alarm
 //
 	//use ICR1 as source for TOP, use clk/0 (No Clock)
-	TCCR1B = (1<<WGM13) | (1<< WGM12) | (0<CS10); 
+	TCCR1B = (1<<WGM13) | (1<< WGM12) | (0<CS10);
 	TIMSK &= ~(1<<OCIE1A); //Disable OCR1A Interrupt
 }
 //**********************************************************************
@@ -343,11 +343,11 @@ void disable_tcnt1(){
 
 //***********************************************************************
 //                            timer/counter2_Disable
-//			      Sets timer Clk to 0           
+//			      Sets timer Clk to 0
 //**********************************************************************
 void disable_timer2(){
 // Add HERE
-// Timer counter 0 initializeed to overflow every 1 second using a 32768Hz 
+// Timer counter 0 initializeed to overflow every 1 second using a 32768Hz
 // External clock and a 128 prescaler. This way every overflow(256) is 1sec
 
   //enable interrupts for output compare match 0
@@ -356,20 +356,20 @@ void disable_timer2(){
         //0-256 takes 1ms (16k CLKIO cycles)
 }
 //**********************************************************************
-	
+
 
 
 
 
 
 //***********************************************************************
-//                            spi_read_write_8bit                               
+//                            spi_read_write_8bit
 //**********************************************************************
 uint8_t spi_rw8(uint8_t write8){
 // Add HERE
 	uint8_t data = 0x00;
 	SPDR = write8;				// Write to the Serial Port Data Reg
-	while(bit_is_clear(SPSR,SPIF)){}	
+	while(bit_is_clear(SPSR,SPIF)){}
 		// Wait untill Status Reg interrupt flag raised
 	data = SPDR;
 	return(data);
@@ -380,13 +380,13 @@ uint8_t spi_rw8(uint8_t write8){
 
 
 //******************************************************************************
-//                            chk_buttons                                      
-//Checks the state of the button number passed to it. It shifts in ones till   
-//the button is pushed. Function returns a 1 only once per debounced button    
-//push so a debounce and toggle function can be implemented at the same time.  
-//Adapted to check all buttons from Ganssel's "Guide to Debouncing"            
-//Expects active low pushbuttons on PINA port.  Debounce time is determined by 
-//external loop delay times 12. 
+//                            chk_buttons
+//Checks the state of the button number passed to it. It shifts in ones till
+//the button is pushed. Function returns a 1 only once per debounced button
+//push so a debounce and toggle function can be implemented at the same time.
+//Adapted to check all buttons from Ganssel's "Guide to Debouncing"
+//Expects active low pushbuttons on PINA port.  Debounce time is determined by
+//external loop delay times 12.
 //
 uint8_t chk_buttons(uint8_t button) {
         static uint16_t state[8] = {0,0,0,0,0,0,0,0};
@@ -401,44 +401,44 @@ uint8_t chk_buttons(uint8_t button) {
 
 
 //***********************************************************************
-//                            volume_up                               
+//                            volume_up
 //**********************************************************************
 void volume_up(){
 	// Todo - Change OCR3
-	
+
 }
 
 
 
 
 //***********************************************************************
-//                            volume_down                               
+//                            volume_down
 //**********************************************************************
 void volume_down(){
 	// Todo - Change OCR3
-	
+
 }
 
 
 
 
 //***********************************************************************************
-//                                   segment_tsum                                    
-//takes a 16-bit binary input value and places the appropriate equivalent 4 digit 
-//BCD segment code in the array segment_data for display.                       
+//                                   segment_tsum
+//takes a 16-bit binary input value and places the appropriate equivalent 4 digit
+//BCD segment code in the array segment_data for display.
 //array is loaded at exit as:  |digit3|digit2|colon|digit1|digit0|
 void segsum(uint8_t xmode){
-  //determine how many digits there are 
+  //determine how many digits there are
         //output to segment_data[5]
         //unsigned int no_digits = 0;
         //if(sum >= 1)(no_digits = 1);
         //if(sum >= 10)(no_digits = 2);
         //if(sum >= 100)(no_digits = 3);
         //if(sum >= 1000)(no_digits = 4);
-	
+
 	switch(xmode){
 		case Clock_mode:
-		  	//break up decimal sum into 4 digit-segment   
+		  	//break up decimal sum into 4 digit-segment
 			//The digits (0-9) are used as the index for the seven segment representation
 			segment_data[0] = dec_to_7seg[(mins/1) %10];
 			segment_data[1] = dec_to_7seg[(mins/10) %10];
@@ -474,7 +474,7 @@ void segsum(uint8_t xmode){
 				segment_data[1] = SEG_OFF;
 				segment_data[2] = SEG_OFF;
 				segment_data[3] = SEG_OFF;
-				segment_data[4] = SEG_OFF;	
+				segment_data[4] = SEG_OFF;
 			break;
 			}
 		case Alarm_set_mode:
@@ -507,7 +507,7 @@ void segsum(uint8_t xmode){
 
 
 //***********************************************************************
-//                            Check Buttons/Encoders                         
+//                            Check Buttons/Encoders
 //**********************************************************************
 void check_user_input(){
 	//Checks the state of the buttons and encoders
@@ -518,59 +518,59 @@ void check_user_input(){
 
 	DDRA = 0x00; // PortA as an input from buttons
 	PORTA = 0xFF; // PortA enable Pull Ups
-	
+
 	_delay_us(1); 				//Test Wait
         if(chk_buttons(0)){
 		clockmode = (clockmode ^ 0X01) & 0x01; // Toggle bit 0
 		// Toggles between clock and alarm views
 	}
-	
+
 	if(chk_buttons(1)){
 		// Add 24-12 hr functionality here
         }
-	
+
 	if(chk_buttons(2)){
                 volume_up();
         }
-		
+
 	if(chk_buttons(3)){
                 volume_down();
         }
-	
+
 	if(chk_buttons(4)){
                 clockmode = Clock_set_mode;
         }
-		
+
 	if(chk_buttons(5)){
                 clockmode = Alarm_set_mode;
 		alarm_armed ^= 0x01;
 		alarm_seconds = 0;
 		// Toggle the arming of the alarm
         }
-	
+
 	if(chk_buttons(6)){
                 if(alarm_buzz = 0x01){
 			snooze();
 		}
         }
-	// Turn off the button board PWM high	
+	// Turn off the button board PWM high
 	PORTB &= ~((1<<PB4) | (1<<PB5) | (1<<PB6) | (0<<PB7));
 
 	DDRA = 0xFF; //DDRA Output
 	PORTA = 0xFF; //Turn Off The 7Seg
-	
+
   // Send info to the bargraph (Sending info will read in encoders)
 	PORTD &= ~(1<<PD2); //Storage Reg for HC595 low
 	PORTE &= ~((1<<PE6) | (1<<PE7) | (1<<PE5)); //Encoder Shift Reg Clk en Low, Load Mode
 	PORTE |= (1<<PE7); //Shift Mode
 	encoder = spi_rw8(incdec_to_bargraph[clockmode]); // Send SPI_8bit
 	//spi_rw8(0xF0); 			//Test line
-	
+
   // Check the encoders
 	if(encoder != old_encoder){
 		// Change in the encoder position
 		encoders();
-	}	
+	}
   // Return the to original states
 	PORTD |= (1<<PD2); //SS_Bar Low
 	PORTE |= (1<<PE6) | (1<<PE7) | (0<<PE5); //Clk enable high, Shift mode
@@ -582,12 +582,12 @@ void check_user_input(){
 
 
 //***********************************************************************
-//                            encoder                               
+//                            encoder
 //**********************************************************************
 void encoders(){
 	// The direction is determined by a state machine look up table 0=no change
 	// 1=CCW, 2=CW
-	//The old encoder value is place in posistion in b2 b3, 0x03 masks out other 1's	
+	//The old encoder value is place in posistion in b2 b3, 0x03 masks out other 1's
 
 	uint8_t direction = 0;
 	switch(clockmode){
@@ -608,19 +608,19 @@ void encoders(){
 						mins = mins - 1;
 					}else{
 						mins = 59;
-					}					
+					}
 					break;
 				case 2:
 					if(mins < 59){
 						mins = mins + 1;
 					}else{
 						mins = 0;
-					}	
+					}
 					break;
 				default:
 					break;
 			}
-			
+
 
 			//Check encoder 2
 			direction = encoder_lookup[(old_encoder & 0x0C) | ((encoder & 0x0C)>>2)];
@@ -632,14 +632,14 @@ void encoders(){
 						hours = hours - 1;
 					}else{
 						hours = 23;
-					}					
+					}
 					break;
 				case 2:
 					if(hours < 23){
 						hours = hours + 1;
 					}else{
 						hours = 0;
-					}	
+					}
 					break;
 				default:
 					break;
@@ -656,19 +656,19 @@ void encoders(){
 						alarm_mins = alarm_mins - 1;
 					}else{
 						alarm_mins = 59;
-					}					
+					}
 					break;
 				case 2:
 					if(alarm_mins < 59){
 						alarm_mins = alarm_mins + 1;
 					}else{
 						alarm_mins = 0;
-					}	
+					}
 					break;
 				default:
 					break;
 			}
-			
+
 
 			//Check encoder 2
 			direction = encoder_lookup[(old_encoder & 0x0C) | ((encoder & 0x0C)>>2)];
@@ -680,14 +680,14 @@ void encoders(){
 						alarm_hours = alarm_hours - 1;
 					}else{
 						alarm_hours = 23;
-					}					
+					}
 					break;
 				case 2:
 					if(alarm_hours < 23){
 						alarm_hours = alarm_hours + 1;
 					}else{
 						alarm_hours = 0;
-					}	
+					}
 					break;
 				default:
 					break;
@@ -705,17 +705,17 @@ void encoders(){
 
 
 //***********************************************************************
-//                            check_alarm                               
+//                            check_alarm
 //**********************************************************************
 void check_alarm(){
 	if((alarm_armed == 0x01) && (hours == alarm_hours) && (mins == alarm_mins)){
-		if((seconds == alarm_seconds)){	
+		if((seconds == alarm_seconds)){
 			init_tcnt1();
 			alarm_buzz = 0x01;
 			send_lcd(0x00, 0x0C);
 		}
 	}
-	
+
 	// Keeps alarm on while the alarm is armed
 	if((alarm_armed == 0x00)){
 		disable_tcnt1();
@@ -727,18 +727,18 @@ void check_alarm(){
 
 
 //***********************************************************************
-//                            snooze_alarm                               
+//                            snooze_alarm
 //**********************************************************************
 void snooze(){
 	//Turn off the alarm
 	disable_tcnt1();
 	alarm_buzz = 0x00;
-	
+
 	if(alarm_seconds < 50){
 		alarm_hours = hours;
 		alarm_mins = mins;
 		alarm_seconds  = seconds;
-		
+
 		if(alarm_seconds < 50){
 			alarm_seconds = alarm_seconds + 10;
 			return;
@@ -746,7 +746,7 @@ void snooze(){
 			alarm_seconds = 60-alarm_seconds;
 			alarm_mins++;
 		}
-		
+
 		if(alarm_mins > 59){
 			alarm_mins = 0;
 			alarm_hours++;
@@ -758,7 +758,7 @@ void snooze(){
 
 
 //***********************************************************************
-//                            check_ADCs                               
+//                            check_ADCs
 //**********************************************************************
 void check_ADCs(){
 	// Reads the ADC
@@ -767,12 +767,12 @@ void check_ADCs(){
 
 	while(bit_is_clear(ADCSRA,ADIF)); //spin while interrupt flag not set
 
-	ADCSRA |= (1<<ADIF); //its done, clear flag by writing a one 
+	ADCSRA |= (1<<ADIF); //its done, clear flag by writing a one
 
 	adc_result = ADCH; //read the ADC output as 16 bits
 	OCR2 = adc_result; //0x10; //adc_result; //adc_result;
 //return(adc_data);
-	
+
 }
 //**********************************************************************
 
@@ -780,7 +780,7 @@ void check_ADCs(){
 
 
 //***********************************************************************
-//                            Timer0_overflow_interrupt                               
+//                            Timer0_overflow_interrupt
 //**********************************************************************
 ISR(TIMER0_OVF_vect){
 	//This intterupt should occur every second
@@ -806,7 +806,7 @@ ISR(TIMER0_OVF_vect){
 
 
 //***********************************************************************
-//                            Timer1_OCR1A_Match                              
+//                            Timer1_OCR1A_Match
 //**********************************************************************
 ISR(TIMER1_COMPA_vect){
 	// Port C must be used for Alarm PWM as OCR1X is used for 7Seg
@@ -818,7 +818,7 @@ ISR(TIMER1_COMPA_vect){
 
 
 //***********************************************************************
-//                            Timer2_overflow_interrupt                               
+//                            Timer2_overflow_interrupt
 //**********************************************************************
 ISR(TIMER2_OVF_vect){
 	//TO DO
