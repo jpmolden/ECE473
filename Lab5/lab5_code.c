@@ -9,7 +9,7 @@
 //
 #include <string.h>
 #include <stdlib.h>
-#include "hd44780.h"
+#include "hd44780.c"
 
 #include "twi_master.h"
 #include "lm73_functions.h"
