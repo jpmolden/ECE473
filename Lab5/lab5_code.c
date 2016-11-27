@@ -549,7 +549,7 @@ void check_user_input(){
         }
 
 	if(chk_buttons(6)){
-                if(alarm_buzz = 0x01){
+                if((alarm_buzz == 0x01)){
 			snooze();
 		}
         }
