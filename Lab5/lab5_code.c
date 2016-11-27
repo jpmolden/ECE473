@@ -9,8 +9,11 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include "hd44780.c"
-// Test line for Windows Git blaag
+#include "hd44780.h"
+
+#include "twi_master.h"
+#include "lm73_functions.h"
+#include "uart_functions.h"
 
 //  HARDWARE SETUP:
 //  PORTA is connected to the segments of the LED display. and to the pushbuttons.
@@ -153,6 +156,9 @@ int main(){
 	disable_tcnt1(); // stop the clock
 	init_tcnt2(); // initalize TIMER/COUNTER2 - 7-Seg Brigtness PWM 8-bit
 	init_tcnt3(); // initalize TIMER/COUNTER3 - Audio Volume PWM 16-bit
+	
+	init_twi();   // initialize TWI(I2C) interface - Temp Sensor
+	
 	init_DDRs(); // initalize DDRs for the display, encoders bargraph
 	init_ADC();
 	lcd_init(); // initialize the lcd screen
@@ -278,6 +284,20 @@ void init_tcnt3(){
 
 }
 //**********************************************************************
+
+
+
+//***********************************************************************
+//                            timer/counter3_init
+//**********************************************************************
+void init_twi(){
+
+
+
+}
+//**********************************************************************
+
+
 
 
 
