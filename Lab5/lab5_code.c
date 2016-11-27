@@ -720,7 +720,7 @@ void check_alarm(){
 	if((alarm_armed == 0x00)){
 		disable_tcnt1();
 		alarm_buzz = 0x00;
-		send_lcd(0x00, 0x0C);
+		send_lcd(0x00, 0x08); //Turn off LCD
 	}
 }
 //**********************************************************************
