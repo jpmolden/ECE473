@@ -859,7 +859,7 @@ ISR(TIMER0_OVF_vect){
 	lm73_temp = lm73_temp << 8; //shift it into upper byte 
 	lm73_temp |= lm73_rd_buf[1];  //"OR" in the low temp byte to lm73_temp 
 	itoa(lm73_temp, lcd_string_array, 2); //convert to string in array with itoa() from avr-libc                           
-	string2lcd(lcd_string_array); //send the string to LCD (lcd_functions)
+//	string2lcd(lcd_string_array); //send the string to LCD (lcd_functions)
 //CHANGE
 	
 }
