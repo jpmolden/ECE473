@@ -89,6 +89,20 @@ uint8_t encoder_lookup[16]={0,2,1,0,1,0,0,2,2,0,0,1,0,1,2,0};
 uint8_t alarm_msg[16] = {'A', 'L', 'A', 'R', 'M', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '};
 
 
+////CHANGE
+	char mode_text[16] = "Normal Mode     ";
+	char temp_text[16] = "In:   C Out:   C";
+	//char lcd_display[32] = lcd_line1 + lcd_line2;
+	char lcd_display[32];
+
+
+	// Temp Sensor
+	extern uint8_t lm73_wr_buf[2];
+	extern uint8_t lm73_rd_buf[2];
+	
+////CHANGE
+
+
 // Mode Variables
 volatile uint8_t incdec_mode = 0;
 volatile uint8_t clockmode = Clock_mode;
@@ -113,9 +127,6 @@ volatile uint8_t alarm_mins = 56;
 volatile uint8_t alarm_seconds = 0;
 volatile uint8_t alarm_buzz = 0;
 
-// Temp Sensor
-extern uint8_t lm73_wr_buf[2];
-extern uint8_t lm73_rd_buf[2];
 
 
 //Function Declarations
@@ -193,6 +204,16 @@ int main(){
 			PORTA = 0XFF; //Seg off to reduce flicker
 			_delay_us(1); // Hold
 		}
+			
+/////CHANGE
+		    //format what is sent to the lcd display 
+		    for(i = 0; i < 16; i++) {
+			lcd_display[i] = mode_text[i];
+			lcd_display[i+16] = temp_text[i];
+		    }
+
+			update_LEDs();
+//////
 
 	}// End while
 
@@ -815,6 +836,12 @@ ISR(TIMER0_OVF_vect){
 	if((hours % 24) == 0){
 		hours = 0;
 	}
+	
+	
+	//Reads the LM73 using the Two Wire Interface
+	//begin a new temp request
+	twi_start_rd(LM73_ADDRESS, lm73_rd_buf, 2);
+	
 }
 //**********************************************************************
 
