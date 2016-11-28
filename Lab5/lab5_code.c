@@ -94,6 +94,7 @@ uint8_t alarm_msg[16] = {'A', 'L', 'A', 'R', 'M', ' ', ' ', ' ', ' ', ' ', ' ', 
 	char temp_text[16] = "In:   C Out:   C";
 	//char lcd_display[32] = lcd_line1 + lcd_line2;
 	char lcd_display[32];
+	uint16_t lm73_temp; //a place to assemble the temperature from the lm73
 
 
 	// Temp Sensor
@@ -172,12 +173,13 @@ int main(){
 	init_tcnt2(); // initalize TIMER/COUNTER2 - 7-Seg Brigtness PWM 8-bit
 	init_tcnt3(); // initalize TIMER/COUNTER3 - Audio Volume PWM 16-bit
 	
-	
+//CHANGE
 	init_twi();   // initialize TWI(I2C) interface - Temp Sensor
 	lm73_wr_buf[0] = 0x00; //Loads the buffer with the read only temperature pointer addr
 			       //The ADDR Pin is left floating for addr 0x90
-	twi_start_wr(LM73_ADDRESS, lm73_wr_buf, 2); // Setup the lm73 pointer
-	
+	twi_start_wr(LM73_ADDRESS, lm73_wr_buf, 2); //start the TWI write process (twi_start_wr())
+
+//CHANGE
 	
 	
 	init_DDRs(); // initalize DDRs for the display, encoders bargraph
@@ -187,6 +189,10 @@ int main(){
 	send_lcd(0x00, 0x08); // turn diplay off
 
 	sei(); // enable global interrupts
+	
+//CHANGE
+	clear_display(); //clean up the display
+//CHANGE
 
 	while(1){                             //main while loop
 	// Send the Digits to the Display
@@ -196,7 +202,7 @@ int main(){
 		i = 0;
 		j = 0; //Refresh the seg data less frequently
 	  //send 7 segment code to LED segments
-		for(;j<100;j++){
+		for(;j<10;j++){
 		for(;i<5;i++){
                 	PORTB = i<<4 | 0<<PB7; // Select a segment
 			PORTA = segment_data[i]; // Send data to the segment
@@ -205,15 +211,22 @@ int main(){
 			_delay_us(1); // Hold
 		}
 			
-/////CHANGE
+//CHANGE
 		    //format what is sent to the lcd display 
-		    for(i = 0; i < 16; i++) {
-			lcd_display[i] = mode_text[i];
-			lcd_display[i+16] = temp_text[i];
-		    }
+//		    for(i = 0; i < 16; i++) {
+//			lcd_display[i] = mode_text[i];
+//			lcd_display[i+16] = temp_text[i];
+//		    }
 
-			update_LEDs();
-//////
+//	
+		lm73_temp = lm73_rd_buf[0]; //save high temperature byte into lm73_temp
+		lm73_temp = lm73_temp << 8; //shift it into upper byte 
+		lm73_temp |= lm73_rd_buf[1];  //"OR" in the low temp byte to lm73_temp 
+		itoa(lm73_temp, lcd_string_array, 2); //convert to string in array with itoa() from avr-libc                           
+		string2lcd(lcd_string_array); //send the string to LCD (lcd_functions)			
+			
+			
+//CHANGE
 
 	}// End while
 
