@@ -113,6 +113,10 @@ volatile uint8_t alarm_mins = 56;
 volatile uint8_t alarm_seconds = 0;
 volatile uint8_t alarm_buzz = 0;
 
+// Temp Sensor
+extern uint8_t lm73_wr_buf[2];
+extern uint8_t lm73_rd_buf[2];
+
 
 //Function Declarations
 void spi_init();
