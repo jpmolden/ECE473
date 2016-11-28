@@ -157,7 +157,13 @@ int main(){
 	init_tcnt2(); // initalize TIMER/COUNTER2 - 7-Seg Brigtness PWM 8-bit
 	init_tcnt3(); // initalize TIMER/COUNTER3 - Audio Volume PWM 16-bit
 	
+	
 	init_twi();   // initialize TWI(I2C) interface - Temp Sensor
+	lm73_wr_buf[0] = 0x00; //Loads the buffer with the read only temperature pointer addr
+			       //The ADDR Pin is left floating for addr 0x90
+	twi_start_wr(LM73_ADDRESS, lm73_wr_buf, 2); // Setup the lm73 pointer
+	
+	
 	
 	init_DDRs(); // initalize DDRs for the display, encoders bargraph
 	init_ADC();
