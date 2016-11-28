@@ -850,10 +850,9 @@ ISR(TIMER0_OVF_vect){
 //CHANGE
 		//Reads the LM73 using the Two Wire Interface
 	//begin a new temp request
-//	twi_start_rd(LM73_ADDRESS, lm73_rd_buf, 2);
 //	clear_display(); //wipe the display
-//	twi_start_rd(LM73_ADDRESS, lm73_rd_buf, 2); //read temperature data from LM73 (2 bytes)  (twi_start_rd())
-//	_delay_ms(2);    //wait for it to finish
+	twi_start_rd(LM73_ADDRESS, lm73_rd_buf, 2); //read temperature data from LM73 (2 bytes)  (twi_start_rd())
+	_delay_ms(2);    //wait for it to finish
 	//now assemble the two bytes read back into one 16-bit value
 //	lm73_temp = lm73_rd_buf[0]; //save high temperature byte into lm73_temp
 //	lm73_temp = lm73_temp << 8; //shift it into upper byte 
