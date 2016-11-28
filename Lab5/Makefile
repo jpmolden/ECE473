@@ -1,6 +1,6 @@
 PRG            =lab5_code
 
-OBJ            = $(PRG).o
+OBJ            = $(PRG).o hd44780.o lm73_functions_skel.o twi_master.o uart_functions.o
 SRCS	       = $(PRG).c hd44780.c lm73_functions_skel.c twi_master.c uart_functions.c
 
 MCU_TARGET     = atmega128
