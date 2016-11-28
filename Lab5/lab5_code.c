@@ -94,12 +94,14 @@ uint8_t alarm_msg[16] = {'A', 'L', 'A', 'R', 'M', ' ', ' ', ' ', ' ', ' ', ' ', 
 	char temp_text[16] = "In:   C Out:   C";
 	//char lcd_display[32] = lcd_line1 + lcd_line2;
 	char lcd_display[32];
+	char lcd_string_array[16]; //holds a string to refresh the LCD
 	uint16_t lm73_temp; //a place to assemble the temperature from the lm73
 
 
 	// Temp Sensor
 	extern uint8_t lm73_wr_buf[2];
 	extern uint8_t lm73_rd_buf[2];
+	
 	
 ////CHANGE
 
