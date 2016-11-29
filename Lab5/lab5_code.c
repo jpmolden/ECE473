@@ -221,7 +221,10 @@ int main(){
 //		    }
 
 //	
-
+		// Send the SRAM display data
+		// refresh lcd()
+			
+			
 			
 //CHANGE
 
