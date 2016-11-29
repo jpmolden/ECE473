@@ -5,7 +5,9 @@
 //using status codes in: usr/local/AVRMacPack/avr-3/include/util/twi.h
 //use my own defines for actions that are to be taken
 
-#define TWI_TWBR 0x0C  //400khz TWI clock
+//#define TWI_TWBR 0x0C  //400khz TWI clock
+#define TWI_TWBR 0x02  //400khz TWI clock
+
 
 #define NO_INTERRUPTS  0
 
