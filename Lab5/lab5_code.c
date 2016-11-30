@@ -136,6 +136,8 @@ volatile uint8_t alarm_buzz = 0;
 
 volatile uint8_t i; //dummy counter
 volatile uint8_t j;
+volatile uint8_t firstbyte; //Used to determine if UART byte from temp sensor is byte 1 or 2
+
 
 
 //USART ATMega 48
@@ -802,7 +804,7 @@ void snooze(){
 			return;
 		}else{
 			alarm_seconds = 60-alarm_seconds;
-			alarm_mins++;
+			alarm_mins++;high byte low byte libc
 		}
 
 		if(alarm_mins > 59){
@@ -881,10 +883,19 @@ ISR(TIMER0_OVF_vect){
 	lcd_string_array[20] = temp_string_array[1];
 	
 	//Send a request to the ATMega48
+	uart_putc('N'); //Send a request char to the ATMega48
+	
+	//Recieve the data 
+	//see ISR
 	
 	
-	//Wait
-
+	lm73_temp = (lm73_rd_buf[0] << 8) | (lm73_rd_buf[1]);
+	lm73_temp = lm73_temp >> 7;
+	
+	//Populate the local temparature data
+	itoa(lm73_temp, temp_string_array, 10); 
+	
+	
 	//Send the RX data to the LCD array
 	lcd_string_array[25] = temp_string_array[0];
 	lcd_string_array[26] = temp_string_array[1];
@@ -901,13 +912,8 @@ ISR(TIMER0_OVF_vect){
 		//send_seq=(send_seq%20);
 	//**************  end tx portion ***************
 	
-	
-	
-	
-	
 }
 //**********************************************************************
-
 
 
 
@@ -942,25 +948,28 @@ ISR(TIMER2_OVF_vect){
 	}
 }
 
+
+
 ISR(TIMER2_COMP_vect){
         //TO DO
 }
 
 
 
+
+//***********************************************************************
+//                            USART0_recieve_interrupt
+//**********************************************************************
+//Get the temp from the ATMega48
 ISR(USART0_RX_vect){
 //USART0 RX complete interrupt
-		//static  uint8_t  m;
-//		  rx_char = UDR0;              //get character
-//		  lcd_string_array[16 + m++]=rx_char;  //store in array 
-//		 //if entire string has arrived, set flag, reset index
-//		  if(rx_char == '\0'){
-//		    rcv_rdy=1; 
-//		    lcd_string_array[--m]  = (' ');     //clear the count field
-//		    lcd_string_array[m+1]  = (' ');
-//		    lcd_string_array[m+2]  = (' ');
-//		    m=0;  
-//  }
+	if(firstbyte == 0){
+		lm73_rd_buf[0] = uart_getc(); //Get the low byte
+		firstbyte = 1;
+	}else{
+		lm73_rd_buf[1] = uart_getc(); //Get the high byte
+		firstbyte = 0;
+	}
 }
 
 
