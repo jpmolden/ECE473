@@ -187,8 +187,6 @@ int main(){
 	init_DDRs(); // initalize DDRs for the display, encoders bargraph
 	init_ADC();
 	lcd_init(); // initialize the lcd screen
-	string2lcd(alarm_msg); // sent msg
-	send_lcd(0x00, 0x08); // turn diplay off
 
 	sei(); // enable global interrupts
 	
@@ -762,7 +760,7 @@ void check_alarm(){
 		if((seconds == alarm_seconds)){
 			init_tcnt1();
 			alarm_buzz = 0x01;
-			send_lcd(0x00, 0x0C);
+			//send_lcd(0x00, 0x0C);
 		}
 	}
 
@@ -770,7 +768,7 @@ void check_alarm(){
 	if((alarm_armed == 0x00)){
 		disable_tcnt1();
 		alarm_buzz = 0x00;
-		send_lcd(0x00, 0x08); //Turn off LCD
+		//send_lcd(0x00, 0x08); //Turn off LCD
 	}
 }
 //**********************************************************************
@@ -856,10 +854,18 @@ ISR(TIMER0_OVF_vect){
 //	clear_display(); //wipe the display
 	twi_start_rd(LM73_ADDRESS, lm73_rd_buf, 2); //read temperature data from LM73 (2 bytes)  (twi_start_rd())
 	_delay_ms(2);    //wait for it to finish
+
 	//now assemble the two bytes read back into one 16-bit value
-//	lm73_temp = lm73_rd_buf[0]; //save high temperature byte into lm73_temp
-//	lm73_temp = lm73_temp << 8; //shift it into upper byte 
-//	lm73_temp |= lm73_rd_buf[1];  //"OR" in the low temp byte to lm73_temp 
+	lm73_temp = lm73_rd_buf[0]; //save high temperature byte into lm73_temp
+  	lm73_temp = lm73_temp << 8; //shift it into upper byte 
+	lm73_temp |= lm73_rd_buf[1];  //"OR" in the low temp byte to lm73_temp 
+	lm73_temp = lm73_temp >> 7;
+	
+	itoa(lm73_temp, lcd_string_array, 10); //convert to string in array with itoa() from avr-libc                           
+	string2lcd(lcd_string_array); //send the string to LCD (lcd_functions)
+	
+	
+
 //	itoa(lm73_temp, lcd_string_array, 2); //convert to string in array with itoa() from avr-libc                           
 //	string2lcd(lcd_string_array); //send the string to LCD (lcd_functions)
 //CHANGE
