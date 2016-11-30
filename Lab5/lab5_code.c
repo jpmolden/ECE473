@@ -124,6 +124,7 @@ volatile uint8_t old_encoder = 0;
 
 
 // Time Variables
+
 volatile uint8_t hours = 11;
 volatile uint8_t mins = 55;
 volatile uint8_t seconds = 40;
