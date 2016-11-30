@@ -231,18 +231,7 @@ int main(){
 			PORTA = 0XFF; //Seg off to reduce flicker
 			_delay_us(1); // Hold
 		}
-			
-//CHANGE
-		    //format what is sent to the lcd display 
-//		    for(i = 0; i < 16; i++) {
-//			lcd_display[i] = mode_text[i];
-//			lcd_display[i+16] = temp_text[i];
-//		    }
-
-//	
-		// Send the SRAM display data
-		// refresh lcd()
-			
+	
 			
 			
 //CHANGE
@@ -893,13 +882,13 @@ ISR(TIMER0_OVF_vect){
 	
 	
 	//**************  start tx portion ***************
-		uart_puts("Hi! Jessie.: ");
-		itoa(send_seq,lcd_string,10);
-		uart_puts(lcd_string);
-		uart_putc('\0');
-		for(i=0;i<=9;i++){_delay_ms(100);}
-		send_seq++;
-		send_seq=(send_seq%20);
+		//uart_puts("Hi! Jessie.: ");
+		//itoa(send_seq,lcd_string,10);
+		//uart_puts(lcd_string);
+		//uart_putc('\0');
+		//for(i=0;i<=9;i++){_delay_ms(100);}
+		//send_seq++;
+		//send_seq=(send_seq%20);
 	//**************  end tx portion ***************
 	
 	
