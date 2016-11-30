@@ -880,6 +880,16 @@ ISR(TIMER0_OVF_vect){
 	lcd_string_array[19] = temp_string_array[0];
 	lcd_string_array[20] = temp_string_array[1];
 	
+	//Send a request to the ATMega48
+	
+	
+	//Wait
+
+	//Send the RX data to the LCD array
+	lcd_string_array[25] = temp_string_array[0];
+	lcd_string_array[26] = temp_string_array[1];
+	
+	
 	
 	//**************  start tx portion ***************
 		//uart_puts("Hi! Jessie.: ");
