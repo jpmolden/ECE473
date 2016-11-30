@@ -897,7 +897,7 @@ ISR(TIMER0_OVF_vect){
 		itoa(send_seq,lcd_string,10);
 		uart_puts(lcd_string);
 		uart_putc('\0');
-		for(uint8_t i=0;i<=9;i++){_delay_ms(100);}
+		for(i=0;i<=9;i++){_delay_ms(100);}
 		send_seq++;
 		send_seq=(send_seq%20);
 	//**************  end tx portion ***************
