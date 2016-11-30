@@ -133,6 +133,15 @@ volatile uint8_t alarm_seconds = 0;
 volatile uint8_t alarm_buzz = 0;
 
 
+//USART ATMega 48
+volatile uint8_t  rcv_rdy;
+char              rx_char; 
+uint8_t           send_seq=0;         //transmit sequence number
+char              lcd_string[3];      //holds value of sequence number
+
+
+
+
 
 //Function Declarations
 void spi_init();
@@ -182,6 +191,13 @@ int main(){
 	lm73_wr_buf[0] = 0x00; //Loads the buffer with the read only temperature pointer addr
 			       //The ADDR Pin is left floating for addr 0x90
 	twi_start_wr(LM73_ADDRESS, lm73_wr_buf, 2); //start the TWI write process (twi_start_wr())
+	
+	//ATMega48 Functions
+	//USART
+	uart_init();
+	
+	
+	
 
 //CHANGE
 	
@@ -873,6 +889,20 @@ ISR(TIMER0_OVF_vect){
 	lcd_string_array[20] = temp_string_array[1];
 	
 	
+	//**************  start tx portion ***************
+		uart_puts("Hi! Jessie.: ");
+		itoa(send_seq,lcd_string,10);
+		uart_puts(lcd_string);
+		uart_putc('\0');
+		for(i=0;i<=9;i++){_delay_ms(100);}
+		send_seq++;
+		send_seq=(send_seq%20);
+	//**************  end tx portion ***************
+	
+	
+	
+	
+	
 }
 //**********************************************************************
 
@@ -912,6 +942,23 @@ ISR(TIMER2_OVF_vect){
 
 ISR(TIMER2_COMP_vect){
         //TO DO
+}
+
+
+
+ISR(USART0_RX_vect){
+//USART0 RX complete interrupt
+static  uint8_t  i;
+  rx_char = UDR0;              //get character
+  lcd_str_array[i++]=rx_char;  //store in array 
+ //if entire string has arrived, set flag, reset index
+  if(rx_char == '\0'){
+    rcv_rdy=1; 
+    lcd_str_array[--i]  = (' ');     //clear the count field
+    lcd_str_array[i+1]  = (' ');
+    lcd_str_array[i+2]  = (' ');
+    i=0;  
+  }
 }
 
 
