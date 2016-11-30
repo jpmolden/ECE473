@@ -134,6 +134,10 @@ volatile uint8_t alarm_seconds = 0;
 volatile uint8_t alarm_buzz = 0;
 
 
+volatile uint8_t i; //dummy counter
+volatile uint8_t j;
+
+
 //USART ATMega 48
 volatile uint8_t  rcv_rdy;
 char              rx_char; 
@@ -177,8 +181,6 @@ void check_ADCs(); // Checks the ADCs and changes the PWM cycle for brightness
 //**********************************************************************
 int main(){
 
-	uint8_t i; //dummy counter
-	uint8_t j;
 
 	spi_init();  //initalize SPI port, also initializes DDB
 	init_tcnt0(); // initalize TIMER/COUNTER0 - Real Time Clock 8-Bit
