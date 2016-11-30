@@ -857,9 +857,12 @@ ISR(TIMER0_OVF_vect){
 	_delay_ms(2);    //wait for it to finish
 
 	//now assemble the two bytes read back into one 16-bit value
-	lm73_temp = lm73_rd_buf[0]; //save high temperature byte into lm73_temp
-  	lm73_temp = lm73_temp << 8; //shift it into upper byte 
-	lm73_temp |= lm73_rd_buf[1];  //"OR" in the low temp byte to lm73_temp 
+	//lm73_temp = lm73_rd_buf[0]; //save high temperature byte into lm73_temp
+  	//lm73_temp = lm73_temp << 8; //shift it into upper byte 
+	//lm73_temp |= lm73_rd_buf[1];  //"OR" in the low temp byte to lm73_temp 
+	//lm73_temp = lm73_temp >> 7;    
+	
+	lm73_temp = (lm73_rd_buf[0] << 8) | (lm73_rd_buf[1]);
 	lm73_temp = lm73_temp >> 7;
 	
 	//Populate the local temparature data
