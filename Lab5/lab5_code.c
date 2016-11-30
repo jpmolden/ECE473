@@ -950,7 +950,7 @@ ISR(USART0_RX_vect){
 //		    lcd_string_array[m+1]  = (' ');
 //		    lcd_string_array[m+2]  = (' ');
 //		    m=0;  
-  }
+//  }
 }
 
 
