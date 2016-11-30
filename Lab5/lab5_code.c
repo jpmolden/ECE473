@@ -95,6 +95,7 @@ uint8_t alarm_msg[16] = {'A', 'L', 'A', 'R', 'M', ' ', ' ', ' ', ' ', ' ', ' ', 
 	//char lcd_display[32] = lcd_line1 + lcd_line2;
 	char lcd_display[32];
 	char lcd_string_array[32] = {'A', 'L', 'A', 'R', 'M', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'A', 'L', 'A', 'R', 'M', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}; //holds a string to refresh the LCD
+	char temp_string_array[2] = {' ', ' '};
 	uint16_t lm73_temp; //a place to assemble the temperature from the lm73
 
 
@@ -861,18 +862,12 @@ ISR(TIMER0_OVF_vect){
 	lm73_temp |= lm73_rd_buf[1];  //"OR" in the low temp byte to lm73_temp 
 	lm73_temp = lm73_temp >> 7;
 	
-	itoa(lm73_temp, lcd_string_array, 10); 
-	//lcd_string_array[3] = 
-	//lcd_string_array[4] = //
+	//Populate the local temparature data
+	itoa(lm73_temp, temp_string_array, 10); 
 	
-	//itoa(lm73_temp, lcd_string_array, 10); //convert to string in array with itoa() from avr-libc                           
-	//string2lcd(lcd_string_array); //send the string to LCD (lcd_functions)
+	lcd_string_array[3] = temp_string_array[0];
+	lcd_string_array[4] = temp_string_array[1];
 	
-	
-
-//	itoa(lm73_temp, lcd_string_array, 2); //convert to string in array with itoa() from avr-libc                           
-//	string2lcd(lcd_string_array); //send the string to LCD (lcd_functions)
-//CHANGE
 	
 }
 //**********************************************************************
