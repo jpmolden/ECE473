@@ -951,16 +951,16 @@ ISR(TIMER2_COMP_vect){
 
 ISR(USART0_RX_vect){
 //USART0 RX complete interrupt
-static  uint8_t  i;
+static  uint8_t  m;
   rx_char = UDR0;              //get character
-  lcd_string_array[16 + i++]=rx_char;  //store in array 
+  lcd_string_array[16 + m++]=rx_char;  //store in array 
  //if entire string has arrived, set flag, reset index
   if(rx_char == '\0'){
     rcv_rdy=1; 
-    lcd_string_array[--i]  = (' ');     //clear the count field
-    lcd_string_array[i+1]  = (' ');
-    lcd_string_array[i+2]  = (' ');
-    i=0;  
+    lcd_string_array[--m]  = (' ');     //clear the count field
+    lcd_string_array[m+1]  = (' ');
+    lcd_string_array[m+2]  = (' ');
+    m=0;  
   }
 }
 
