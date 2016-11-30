@@ -197,7 +197,7 @@ int main(){
 	
 	//ATMega48 Functions
 	//USART
-	uart_init();
+	//uart_init();
 	
 	
 	
