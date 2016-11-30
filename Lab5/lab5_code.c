@@ -953,13 +953,13 @@ ISR(USART0_RX_vect){
 //USART0 RX complete interrupt
 static  uint8_t  i;
   rx_char = UDR0;              //get character
-  lcd_str_array[i++]=rx_char;  //store in array 
+  lcd_string_array[16 + i++]=rx_char;  //store in array 
  //if entire string has arrived, set flag, reset index
   if(rx_char == '\0'){
     rcv_rdy=1; 
-    lcd_str_array[--i]  = (' ');     //clear the count field
-    lcd_str_array[i+1]  = (' ');
-    lcd_str_array[i+2]  = (' ');
+    lcd_string_array[--i]  = (' ');     //clear the count field
+    lcd_string_array[i+1]  = (' ');
+    lcd_string_array[i+2]  = (' ');
     i=0;  
   }
 }
