@@ -804,7 +804,7 @@ void snooze(){
 			return;
 		}else{
 			alarm_seconds = 60-alarm_seconds;
-			alarm_mins++;high byte low byte libc
+			alarm_mins++;
 		}
 
 		if(alarm_mins > 59){
