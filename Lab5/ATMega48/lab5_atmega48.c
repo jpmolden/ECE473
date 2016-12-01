@@ -25,7 +25,7 @@ extern uint8_t lm73_rd_buf[2];
 //Variable Defns
 uint8_t rx_m128_command;
 uint16_t lm73_temp; //a place to assemble the temperature from the lm73
-uint8_t new_data_needed
+uint8_t new_data_needed;
 char temp_string_array[3] = {' ', ' ', ' '};
 
 
