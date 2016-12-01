@@ -70,7 +70,7 @@ int main() {
 //Get the temp command from the ATMega128
 ISR(USART_RX_vect) {
     rx_m128_command = uart_getc();
-    if(rx_m128_command == 0xAB)
+    if(rx_m128_command == 0xAB){
         //If the recieved command is valid send the temparature
         uart_puts(temp_string_array);
     }
