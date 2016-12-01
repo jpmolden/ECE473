@@ -29,30 +29,24 @@ uint8_t new_data_needed;
 char temp_string_array[3] = {' ', ' ', ' '};
 
 
+
+
 int main() {
 
     init_twi();
     uart_init();
     sei();
-
-    
   
     //Initial Temparature Data
     lm73_wr_buf[0] = 0x00;
     twi_start_wr(LM73_ADDRESS, lm73_wr_buf, 2);
-
     lm73_temp = (lm73_rd_buf[0] << 8) | (lm73_rd_buf[1]);
     lm73_temp = lm73_temp >> 7;
     //Populate the local temparature data
-    itoa(lm73_temp, temp_string_array, 10);
+    itoa(lm73_temp, temp_string_array, 10);  
   
-  
-  
+    
     while(1) {
-        
-      //Read the temp over TWI
-
-      
       //Get new data once the USART Intterupt Sends
       if(new_data_needed == TRUE){
           //Read the temp over TWI
@@ -63,10 +57,8 @@ int main() {
           //Populate the local temparature data
           itoa(lm73_temp, temp_string_array, 10);
           new_data_needed = FALSE;
-      }//End if
-      
-    //Do Nothing unless new data needed or interrupt
-      
+      }//End if  
+      //Do Nothing unless new data needed or interrupt  
     }//End While
 }//main
 
@@ -81,7 +73,8 @@ ISR(USART_RX_vect) {
     if(rx_m128_command == 0xAB)
         //If the recieved command is valid send the temparature
         uart_puts(temp_string_array);
-        new_data_needed = TRUE;
+    }
+    new_data_needed = TRUE;
 }
 
 
