@@ -883,7 +883,7 @@ ISR(TIMER0_OVF_vect){
 	lcd_string_array[20] = temp_string_array[1];
 	
 	//Send a request to the ATMega48
-	uart_putc('N'); //Send a request char to the ATMega48
+	uart_putc(0xAB); //Send a request char to the ATMega48
 	
 	//Recieve the data 
 	//see ISR
