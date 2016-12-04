@@ -963,6 +963,7 @@ ISR(TIMER2_COMP_vect){
 //Get the temp from the ATMega48
 ISR(USART0_RX_vect){
 //USART0 RX complete interrupt
+	char temp_uart_data = uart_getc();
 	if(firstbyte == 0){
 		lm73_rd_buf[0] = uart_getc(); //Get the low byte
 		firstbyte = 1;
