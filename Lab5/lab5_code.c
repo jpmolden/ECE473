@@ -866,7 +866,7 @@ ISR(TIMER0_OVF_vect){
 //	clear_display(); //wipe the display
 	twi_start_rd(LM73_ADDRESS, lm73_rd_buf, 2); //read temperature data from LM73 (2 bytes)  (twi_start_rd())
 	_delay_ms(2);    //wait for it to finish
-
+	
 	//now assemble the two bytes read back into one 16-bit value
 	//lm73_temp = lm73_rd_buf[0]; //save high temperature byte into lm73_temp
   	//lm73_temp = lm73_temp << 8; //shift it into upper byte 
@@ -882,23 +882,25 @@ ISR(TIMER0_OVF_vect){
 	lcd_string_array[19] = temp_string_array[0];
 	lcd_string_array[20] = temp_string_array[1];
 	
+	
+	
+	
+	while(!(UCSR0A & (1 << UDRE0)));
+	UDR0 = 0xF0;
+
 	//Send a request to the ATMega48
-	uart_putc(0xAB); //Send a request char to the ATMega48
+	//uart_putc(0xAB); //Send a request char to the ATMega48
 	
 	//Recieve the data 
 	//see ISR
 	
 	
-	lm73_temp = (lm73_rd_buf[0] << 8) | (lm73_rd_buf[1]);
-	lm73_temp = lm73_temp >> 7;
+	//lm73_temp = (lm73_rd_buf[0] << 8) | (lm73_rd_buf[1]);
+	//lm73_temp = lm73_temp >> 7;
 	
 	//Populate the local temparature data
-	itoa(lm73_temp, temp_string_array, 10); 
+	//itoa(lm73_temp, temp_string_array, 10); 
 	
-	
-	//Send the RX data to the LCD array
-	lcd_string_array[25] = temp_string_array[0];
-	lcd_string_array[26] = temp_string_array[1];
 	
 	
 	
@@ -963,12 +965,13 @@ ISR(TIMER2_COMP_vect){
 //Get the temp from the ATMega48
 ISR(USART0_RX_vect){
 //USART0 RX complete interrupt
+
 	char temp_uart_data = uart_getc();
 	if(firstbyte == 0){
-		lm73_rd_buf[0] = uart_getc(); //Get the low byte
+		lcd_string_array[25] = temp_uart_data; //Get the low byte
 		firstbyte = 1;
 	}else{
-		lm73_rd_buf[1] = uart_getc(); //Get the high byte
+		lcd_string_array[26] = temp_uart_data; //Get the high byte
 		firstbyte = 0;
 	}
 }
