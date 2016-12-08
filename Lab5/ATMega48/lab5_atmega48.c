@@ -25,8 +25,8 @@ extern uint8_t lm73_rd_buf[2];
 //Variable Defns
 uint8_t rx_m128_command;
 uint16_t lm73_temp; //a place to assemble the temperature from the lm73
-uint8_t new_data_needed;
-char temp_string_array[3] = {' ', ' ', ' '};
+uint8_t new_data_needed = TRUE;
+char temp_string_array[2];
 
 
 
@@ -40,6 +40,7 @@ int main() {
     //Initial Temparature Data
     lm73_wr_buf[0] = 0x00;
     twi_start_wr(LM73_ADDRESS, lm73_wr_buf, 2);
+    
     lm73_temp = (lm73_rd_buf[0] << 8) | (lm73_rd_buf[1]);
     lm73_temp = lm73_temp >> 7;
     //Populate the local temparature data
@@ -56,7 +57,7 @@ int main() {
           lm73_temp = lm73_temp >> 7;
           //Populate the local temparature data
           itoa(lm73_temp, temp_string_array, 10);
-          new_data_needed = FALSE;
+          //new_data_needed = FALSE;
       }//End if  
       //Do Nothing unless new data needed or interrupt  
     }//End While
@@ -70,11 +71,11 @@ int main() {
 //Get the temp command from the ATMega128
 ISR(USART_RX_vect) {
     rx_m128_command = uart_getc();
-    if(rx_m128_command == 0xAB){
+    if(rx_m128_command == 0xF0){
         //If the recieved command is valid send the temparature
         uart_puts(temp_string_array);
     }
-    new_data_needed = TRUE;
+    //new_data_needed = TRUE;
 }
 
 

@@ -86,26 +86,17 @@ uint8_t buttons_to_incdec[4]={
 // State machine look up table
 uint8_t encoder_lookup[16]={0,2,1,0,1,0,0,2,2,0,0,1,0,1,2,0};
 //uint8_t encoder_lookup[16]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-uint8_t alarm_msg[16] = {'A', 'L', 'A', 'R', 'M', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '};
 
 
-////CHANGE
-	char mode_text[16] = "Normal Mode     ";
-	char temp_text[16] = "In:   C Out:   C";
-	//char lcd_display[32] = lcd_line1 + lcd_line2;
-	char lcd_display[32];
-	char lcd_string_array[32] = {'A', 'L', 'A', 'R', 'M', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 
-				     'I', 'N', ':', ' ', ' ', 'O', 'U', 'T', ':', ' ', ' ', ' ', ' ', ' ', ' ', ' '}; //holds a string to refresh the LCD
-	char temp_string_array[3] = {' ', ' ', ' '};
-	uint16_t lm73_temp; //a place to assemble the temperature from the lm73
+char lcd_display[32];
+char lcd_string_array[32] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+				 'I', 'N', ':', ' ', ' ', 'O', 'U', 'T', ':', ' ', ' ', ' ', ' ', ' ', ' ', ' '}; //holds a string to refresh the LCD
 
+// Temp Sensor
+extern uint8_t lm73_wr_buf[2];
+extern uint8_t lm73_rd_buf[2];
+uint16_t lm73_temp; //a place to assemble the temperature from the lm73
 
-	// Temp Sensor
-	extern uint8_t lm73_wr_buf[2];
-	extern uint8_t lm73_rd_buf[2];
-	
-	
-////CHANGE
 
 
 // Mode Variables
@@ -113,18 +104,13 @@ volatile uint8_t incdec_mode = 0;
 volatile uint8_t clockmode = Clock_mode;
 volatile uint8_t alarm_armed = 1;
 
-//volatile uint8_t button1 = 0;
-//volatile uint8_t button2 = 0;
-
 
 // Current and new encoder states
 volatile uint8_t encoder = 0;
 volatile uint8_t old_encoder = 0;
-//volatile uint8_t display_count = 0x00; //holds count for 7seg display
 
 
 // Time Variables
-
 volatile uint8_t hours = 11;
 volatile uint8_t mins = 55;
 volatile uint8_t seconds = 40;
@@ -141,13 +127,8 @@ volatile uint8_t firstbyte; //Used to determine if UART byte from temp sensor is
 
 
 //USART ATMega 48
-volatile uint8_t  rcv_rdy;
-char              rx_char; 
-uint8_t           send_seq=0;         //transmit sequence number
-char              lcd_string[3];      //holds value of sequence number
-
-
-
+char tempsensor_string[2]; //holds value of sequence number
+uint8_t first_byte = TRUE;
 
 
 //Function Declarations
@@ -773,6 +754,11 @@ void check_alarm(){
 			init_tcnt1();
 			alarm_buzz = 0x01;
 			//send_lcd(0x00, 0x0C);
+			lcd_string_array[0] = 'A';
+			lcd_string_array[1] = 'L';
+			lcd_string_array[2] = 'A';
+			lcd_string_array[3] = 'R';
+			lcd_string_array[4] = 'M';
 		}
 	}
 
@@ -781,6 +767,11 @@ void check_alarm(){
 		disable_tcnt1();
 		alarm_buzz = 0x00;
 		//send_lcd(0x00, 0x08); //Turn off LCD
+		lcd_string_array[0] = ' ';
+		lcd_string_array[1] = ' ';
+		lcd_string_array[2] = ' ';
+		lcd_string_array[3] = ' ';
+		lcd_string_array[4] = ' ';
 	}
 }
 //**********************************************************************
@@ -860,59 +851,21 @@ ISR(TIMER0_OVF_vect){
 		hours = 0;
 	}
 	
-//CHANGE
-		//Reads the LM73 using the Two Wire Interface
-	//begin a new temp request
-//	clear_display(); //wipe the display
-	twi_start_rd(LM73_ADDRESS, lm73_rd_buf, 2); //read temperature data from LM73 (2 bytes)  (twi_start_rd())
-	_delay_ms(2);    //wait for it to finish
-	
-	//now assemble the two bytes read back into one 16-bit value
-	//lm73_temp = lm73_rd_buf[0]; //save high temperature byte into lm73_temp
-  	//lm73_temp = lm73_temp << 8; //shift it into upper byte 
-	//lm73_temp |= lm73_rd_buf[1];  //"OR" in the low temp byte to lm73_temp 
-	//lm73_temp = lm73_temp >> 7;    
-	
-	lm73_temp = (lm73_rd_buf[0] << 8) | (lm73_rd_buf[1]);
-	lm73_temp = lm73_temp >> 7;
-	
-	//Populate the local temparature data
-	itoa(lm73_temp, temp_string_array, 10); 
-	
-	lcd_string_array[19] = temp_string_array[0];
-	lcd_string_array[20] = temp_string_array[1];
-	
-	
-	
-	
-	while(!(UCSR0A & (1 << UDRE0)));
-	UDR0 = 0xF0;
+    //Request the temp
+	twi_start_rd(LM73_ADDRESS, lm73_rd_buf, 2);
+	//Format the local temp data
+    lm73_temp = (lm73_rd_buf[0] << 8) | (lm73_rd_buf[1]);
+    lm73_temp = lm73_temp >> 7;
+    itoa(lm73_temp, tempsensor_string, 10);
+    //Send the local data to the LCD array
+    lcd_string_array[19] = tempsensor_string[0];
+    lcd_string_array[20] = tempsensor_string[1];
 
-	//Send a request to the ATMega48
-	//uart_putc(0xAB); //Send a request char to the ATMega48
-	
-	//Recieve the data 
-	//see ISR
-	
-	
-	//lm73_temp = (lm73_rd_buf[0] << 8) | (lm73_rd_buf[1]);
-	//lm73_temp = lm73_temp >> 7;
-	
-	//Populate the local temparature data
-	//itoa(lm73_temp, temp_string_array, 10); 
-	
-	
-	
-	
-	//**************  start tx portion ***************
-		//uart_puts("Hi! Jessie.: ");
-		//itoa(send_seq,lcd_string,10);
-		//uart_puts(lcd_string);
-		//uart_putc('\0');
-		//for(i=0;i<=9;i++){_delay_ms(100);}
-		//send_seq++;
-		//send_seq=(send_seq%20);
-	//**************  end tx portion ***************
+
+    //Request the ATmega48 data
+    while(!(UCSR0A & (1 << UDRE0)));
+    UDR0 = 0xF0;
+
 	
 }
 //**********************************************************************
@@ -963,17 +916,16 @@ ISR(TIMER2_COMP_vect){
 //                            USART0_recieve_interrupt
 //**********************************************************************
 //Get the temp from the ATMega48
-ISR(USART0_RX_vect){
-//USART0 RX complete interrupt
+ISR(USART0_RX_vect) {
 
-	char temp_uart_data = uart_getc();
-	if(firstbyte == 0){
-		lcd_string_array[25] = temp_uart_data; //Get the low byte
-		firstbyte = 1;
-	}else{
-		lcd_string_array[26] = temp_uart_data; //Get the high byte
-		firstbyte = 0;
-	}
+	//Process the recieved ATmega48 data to the LCD
+    if(first_byte == TRUE){
+    	lcd_string_array[25] = uart_getc();
+    	first_byte = FALSE;
+    }else{
+    	lcd_string_array[26] = uart_getc();
+    	first_byte = TRUE;
+    }
 }
 
 
