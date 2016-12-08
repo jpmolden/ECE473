@@ -728,7 +728,7 @@ void encoders(){
 				default:
 					break;
 			}
-
+// Hi
 
 			//Check encoder 2
 			direction = encoder_lookup[(old_encoder & 0x0C) | ((encoder & 0x0C)>>2)];
