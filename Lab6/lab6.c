@@ -14,6 +14,9 @@
 #include "twi_master.h"
 #include "lm73_functions.h"
 #include "uart_functions.h"
+#include "si4734.h"
+//Radio Driver
+
 
 //  HARDWARE SETUP:
 //  PORTA is connected to the segments of the LED display. and to the pushbuttons.
@@ -131,6 +134,25 @@ char tempsensor_string[2]; //holds value of sequence number
 uint8_t first_byte = TRUE;
 
 
+//Radio
+// Radio Variables
+enum radio_band{FM, AM, SW};
+volatile enum radio_band current_radio_band;
+uint8_t freq_disp_flag = FALSE;
+uint8_t freq_disp_counter = 0;
+
+uint16_t eeprom_fm_freq;
+uint16_t eeprom_am_freq;
+uint16_t eeprom_sw_freq;
+uint8_t eeprom_volume;
+
+uint16_t current_fm_freq;
+uint16_t current_am_freq;
+uint16_t current_sw_freq;
+uint8_t current_volume;
+extern uint8_t STC_interrupt;
+
+
 //Function Declarations
 void spi_init();
 uint8_t spi_rw8(uint8_t write8);
@@ -158,6 +180,10 @@ void snooze(); // Adds 10 second to alarm upto 50 seconds
 void check_ADCs(); // Checks the ADCs and changes the PWM cycle for brightness
 
 
+//Radio
+void radio_reset();
+uint16_t current_fm_freq;
+
 
 //***********************************************************************
 //                            main
@@ -182,8 +208,26 @@ int main(){
 	//USART
 	uart_init();
 	
+	//Radio code
+	radio_reset();
+	_delay_ms(100);
+	fm_pwr_up(); //powerup the radio as appropriate
+	_delay_ms(100);
+
+
+	current_fm_freq = 9990; //arg2, arg3: 99.9Mhz, 200khz steps
+	fm_tune_freq(); //tune radio to frequency in current_fm_freq
+	_delay_ms(100);
+
+
+	//Radio External Interrupts
+	EIMSK |= (1<<INT7); //Enable int 7 mask
+	EICRB |= (1<<ISC71) | (1<<ISC70); //Set external interupt control reg B
+
+
 	
 	
+
 
 //CHANGE
 	
@@ -930,6 +974,42 @@ ISR(USART0_RX_vect) {
     	first_byte = TRUE;
     }
 }
+
+
+void radio_reset(){
+	//Code given by rodger
+	DDRE  |= 0x04; //Port E bit 2 is active high reset for radio
+	PORTE |= 0x04; //radio reset is on at powerup (active high)
+
+	//hardware reset of Si4734
+	 PORTE &= ~(1<<PE7); //int2 initially low to sense TWI mode
+	 DDRE  |= 0x80;      //turn on Port E bit 7 to drive it low
+	 PORTE |=  (1<<PE2); //hardware reset Si4734
+	 _delay_us(200);     //hold for 200us, 100us by spec
+	 PORTE &= ~(1<<PE2); //release reset
+	 _delay_us(30);      //5us required because of my slow I2C translators I suspect
+							//Si code in "low" has 30us delay...no explaination
+	 DDRE  &= ~(0x80);   //now Port E bit 7 becomes input from the radio interrupt
+}
+
+
+
+
+
+
+
+
+//******************************************************************************
+// External interrupt 7 is on Port E bit 7. The interrupt is triggered on the
+// rising edge of Port E bit 7.  The i/o clock must be running to detect the
+// edge (not asynchronouslly triggered)
+//******************************************************************************
+ISR(INT7_vect){STC_interrupt = TRUE;}
+/***********************************************************************/
+
+
+
+
 
 
 
