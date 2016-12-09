@@ -147,12 +147,13 @@ uint16_t eeprom_sw_freq;
 uint8_t eeprom_volume;
 
 uint16_t current_fm_freq;
+uint16_t LCD_current_fm_freq;
 uint16_t current_am_freq;
 uint16_t current_sw_freq;
 uint8_t current_volume;
 extern uint8_t STC_interrupt;
 uint8_t radio_onoff_toggle = TRUE;
-
+char digits[10] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
 
 
 
@@ -685,24 +686,44 @@ void encoders(){
 							if(mins > 0){
 								current_fm_freq = current_fm_freq - 20;
 								fm_tune_freq();
+								lcd_string_array[10] = digits[(current_fm_freq/10) %10];
+								lcd_string_array[9] = '.';
+								lcd_string_array[8] = digits[(current_fm_freq/100) %10];
+								lcd_string_array[7] = digits[(current_fm_freq/1000) %10];
+								lcd_string_array[6] = digits[(current_fm_freq/10000) %10];
 							}else{
 								current_fm_freq = 10790;
 								fm_tune_freq();
+								LCD_current_fm_freq = current_fm_freq/10;
+								lcd_string_array[10] = digits[(current_fm_freq/10) %10];
+								lcd_string_array[9] = '.';
+								lcd_string_array[8] = digits[(current_fm_freq/100) %10];
+								lcd_string_array[7] = digits[(current_fm_freq/1000) %10];
+								lcd_string_array[6] = digits[(current_fm_freq/10000) %10];
 							}
 							break;
 						case 2:
 							if(current_fm_freq < 10790){
 								current_fm_freq = current_fm_freq + 20;
 								fm_tune_freq();
+								lcd_string_array[10] = digits[(current_fm_freq/10) %10];
+								lcd_string_array[9] = '.';
+								lcd_string_array[8] = digits[(current_fm_freq/100) %10];
+								lcd_string_array[7] = digits[(current_fm_freq/1000) %10];
+								lcd_string_array[6] = digits[(current_fm_freq/10000) %10];
 							}else{
 								current_fm_freq = 8890;
 								fm_tune_freq();
+								lcd_string_array[10] = digits[(current_fm_freq/10) %10];
+								lcd_string_array[9] = '.';
+								lcd_string_array[8] = digits[(current_fm_freq/100) %10];
+								lcd_string_array[7] = digits[(current_fm_freq/1000) %10];
+								lcd_string_array[6] = digits[(current_fm_freq/10000) %10];
 							}
 							break;
 						default:
 							break;
 					}
-
 
 					//Check encoder 2
 					direction = encoder_lookup[(old_encoder & 0x0C) | ((encoder & 0x0C)>>2)];
@@ -728,6 +749,7 @@ void encoders(){
 					}
 					break;
 			break;
+
 		case Alarm_mode:
 			// Do Nothing
 			break;
