@@ -602,8 +602,11 @@ void check_user_input(){
 
   // Send info to the bargraph (Sending info will read in encoders)
 	PORTD &= ~(1<<PD2); //Storage Reg for HC595 low
-	PORTE &= ~((1<<PE6) | (1<<PE7) | (1<<PE5)); //Encoder Shift Reg Clk en Low, Load Mode
-	PORTE |= (1<<PE7); //Shift Mode
+	PORTE &= ~((1<<PE6) |  (1<<PE5)); //Encoder Shift Reg Clk en Low, Load Mode
+	PORTC &= ~(1<<PC1);
+	PORTC |= (1<<PC1);//Shift Mode
+
+	//PORTE |= (1<<PE7);
 	encoder = spi_rw8(incdec_to_bargraph[clockmode]); // Send SPI_8bit
 	//spi_rw8(0xF0); 			//Test line
 
@@ -614,7 +617,7 @@ void check_user_input(){
 	}
   // Return the to original states
 	PORTD |= (1<<PD2); //SS_Bar Low
-	PORTE |= (1<<PE6) | (1<<PE7) | (0<<PE5); //Clk enable high, Shift mode
+	PORTE |= (1<<PE6) | (0<<PE5); //Clk enable high, Shift mode
 	PORTB &= ~((1<<PB4) | (1<<PB5) | (1<<PB6) | (1<<PB7)); // Sel 0
   // Disable the button board tristates
 }
