@@ -151,6 +151,7 @@ uint16_t current_am_freq;
 uint16_t current_sw_freq;
 uint8_t current_volume;
 extern uint8_t STC_interrupt;
+uint8_t radio_onoff_toggle = TRUE;
 
 
 
@@ -200,7 +201,6 @@ int main(){
 	init_tcnt2(); // initalize TIMER/COUNTER2 - 7-Seg Brigtness PWM 8-bit
 	init_tcnt3(); // initalize TIMER/COUNTER3 - Audio Volume PWM 16-bit
 	
-//CHANGE
 	init_twi();   // initialize TWI(I2C) interface - Temp Sensor
 	lm73_wr_buf[0] = 0x00; //Loads the buffer with the read only temperature pointer addr
 			       //The ADDR Pin is left floating for addr 0x90
@@ -228,31 +228,10 @@ int main(){
 
 	fm_pwr_up(); //powerup the radio as appropriate
 	_delay_ms(100);
-
-
 	current_fm_freq = 10630; //arg2, arg3: 99.9Mhz, 200khz steps
+	//current_fm_freq = 10150; //arg2, arg3: 99.9Mhz, 200khz steps
 	fm_tune_freq(); //tune radio to frequency in current_fm_freq
 	_delay_ms(100);
-	//fm_tune_freq();
-
-
-	//Radio External Interrupts
-
-
-
-	
-	
-
-
-//CHANGE
-	
-	
-
-
-	
-//CHANGE
-	//clear_display(); //clean up the display
-//CHANGE
 
 	while(1){                             //main while loop
 	// Send the Digits to the Display
@@ -270,10 +249,6 @@ int main(){
 			PORTA = 0XFF; //Seg off to reduce flicker
 			_delay_us(1); // Hold
 		}
-	
-			
-			
-//CHANGE
 
 	}// End while
 
@@ -315,6 +290,8 @@ void init_tcnt0(){
 //**********************************************************************
 
 
+
+
 //***********************************************************************
 //                            timer/counter1_init
 //**********************************************************************
@@ -338,6 +315,7 @@ void init_tcnt1(){
 	TIMSK |= (1<<OCIE1A);  // Timer/Counter1, Output Compare A Match Interrupt Enable
 }
 //**********************************************************************
+
 
 
 //***********************************************************************
@@ -416,11 +394,6 @@ void init_ADC(){
 	//ADC enabled, don't start yet, single shot mode
 }
 //**********************************************************************
-
-
-
-
-
 
 
 
@@ -623,7 +596,15 @@ void check_user_input(){
 	}
 
 	if(chk_buttons(1)){
-		set_property(0x4001, 0x0000);
+		if(radio_onoff_toggle == TRUE){
+			set_property(RX_HARD_MUTE, 0x0000);
+			radio_onoff_toggle = FALSE;
+		}else{
+			set_property(RX_HARD_MUTE, 0x0003);
+			radio_onoff_toggle = TRUE;
+		}
+
+
 
 		// Add 24-12 hr functionality here
         }
@@ -694,7 +675,58 @@ void encoders(){
 	uint8_t direction = 0;
 	switch(clockmode){
 		case Clock_mode:
-			// Do Nothing
+					// Do Nothing
+					//Check encoder 1
+					direction = encoder_lookup[((old_encoder & 0x03)<<2) | (encoder & 0x03)];
+					switch(direction){
+						case 0:
+							break;
+						case 1:
+							if(mins > 0){
+								current_fm_freq = current_fm_freq - 20;
+								fm_tune_freq();
+							}else{
+								current_fm_freq = 10790;
+								fm_tune_freq();
+							}
+							break;
+						case 2:
+							if(current_fm_freq < 10790){
+								current_fm_freq = current_fm_freq + 20;
+								fm_tune_freq();
+							}else{
+								current_fm_freq = 8890;
+								fm_tune_freq();
+							}
+							break;
+						default:
+							break;
+					}
+
+
+					//Check encoder 2
+					direction = encoder_lookup[(old_encoder & 0x0C) | ((encoder & 0x0C)>>2)];
+					switch(direction){
+						case 0:
+							break;
+						case 1:
+							if(hours > 0){
+								hours = hours - 1;
+							}else{
+								hours = 23;
+							}
+							break;
+						case 2:
+							if(hours < 23){
+								hours = hours + 1;
+							}else{
+								hours = 0;
+							}
+							break;
+						default:
+							break;
+					}
+					break;
 			break;
 		case Alarm_mode:
 			// Do Nothing
@@ -770,7 +802,6 @@ void encoders(){
 				default:
 					break;
 			}
-// Hi
 
 			//Check encoder 2
 			direction = encoder_lookup[(old_encoder & 0x0C) | ((encoder & 0x0C)>>2)];
@@ -1005,11 +1036,6 @@ void radio_reset(){
 							//Si code in "low" has 30us delay...no explaination
 	 DDRE  &= ~(0x80);   //now Port E bit 7 becomes input from the radio interrupt
 }
-
-
-
-
-
 
 
 
