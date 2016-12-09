@@ -138,8 +138,8 @@ uint8_t first_byte = TRUE;
 // Radio Variables
 enum radio_band{FM, AM, SW};
 volatile enum radio_band current_radio_band;
-uint8_t freq_disp_flag = FALSE;
-uint8_t freq_disp_counter = 0;
+																//uint8_t freq_disp_flag = FALSE;
+																//uint8_t freq_disp_counter = 0;
 
 uint16_t eeprom_fm_freq;
 uint16_t eeprom_am_freq;
@@ -151,6 +151,8 @@ uint16_t current_am_freq;
 uint16_t current_sw_freq;
 uint8_t current_volume;
 extern uint8_t STC_interrupt;
+
+
 
 
 //Function Declarations
@@ -208,38 +210,48 @@ int main(){
 	//USART
 	uart_init();
 	
-	//Radio code
-	radio_reset();
-	_delay_ms(100);
-	fm_pwr_up(); //powerup the radio as appropriate
-	_delay_ms(100);
-
-
-	current_fm_freq = 9990; //arg2, arg3: 99.9Mhz, 200khz steps
-	fm_tune_freq(); //tune radio to frequency in current_fm_freq
-	_delay_ms(100);
-
-
-	//Radio External Interrupts
-	EIMSK |= (1<<INT7); //Enable int 7 mask
-	EICRB |= (1<<ISC71) | (1<<ISC70); //Set external interupt control reg B
-
-
-	
-	
-
-
-//CHANGE
-	
-	
 	init_DDRs(); // initalize DDRs for the display, encoders bargraph
 	init_ADC();
 	lcd_init(); // initialize the lcd screen
 
+	//Radio code
+	EIMSK |= 0x80; //Enable int 7 mask
+	EICRB |= (1<<ISC71) | (1<<ISC70); //Set external interupt control reg B
+
+	//radio_reset();
+	radio_reset();
+	_delay_ms(100);
+
+
 	sei(); // enable global interrupts
+
+
+	fm_pwr_up(); //powerup the radio as appropriate
+	_delay_ms(100);
+
+
+	current_fm_freq = 10630; //arg2, arg3: 99.9Mhz, 200khz steps
+	fm_tune_freq(); //tune radio to frequency in current_fm_freq
+	_delay_ms(100);
+	//fm_tune_freq();
+
+
+	//Radio External Interrupts
+
+
+
+	
+	
+
+
+//CHANGE
+	
+	
+
+
 	
 //CHANGE
-	clear_display(); //clean up the display
+	//clear_display(); //clean up the display
 //CHANGE
 
 	while(1){                             //main while loop
@@ -611,6 +623,8 @@ void check_user_input(){
 	}
 
 	if(chk_buttons(1)){
+		set_property(0x4001, 0x0000);
+
 		// Add 24-12 hr functionality here
         }
 
