@@ -1011,9 +1011,8 @@ ISR(TIMER2_OVF_vect){
 		check_user_input();
 		check_ADCs();
 		
-			
-		refresh_lcd(lcd_string_array);
-
+		//Refresh one LCD character
+		refresh_lcd(lcd_string_array); 
 	}
 }
 
