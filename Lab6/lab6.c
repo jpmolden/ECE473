@@ -1,6 +1,6 @@
-// ECE473 Lab4 - Alarm Clock using Encoders, Bargraph, Buttons & 7-Seg - Using SPI, Timers and Interrupts
+// ECE473 Lab6 - Alarm Clock Radio using Encoders, Bargraph, Buttons & 7-Seg - Using SPI, TWI, Timers and Interrupts
 // John-Paul Molden
-// 10.26.16
+// 12.09.16
 
 // Includes
 #include <avr/io.h>
